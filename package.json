@@ -1,0 +1,30 @@
+{
+  "name": "patchya",
+  "description": "",
+  "version": "1.0.0",
+  "homepage": "https://github.com/dominictarr/patchya",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/dominictarr/patchya.git"
+  },
+  "dependencies": {
+    "cont": "^1.0.3",
+    "hyperscript": "^2.0.2",
+    "libnested": "^1.3.2",
+    "nice-ago": "^1.0.1",
+    "pull-stream": "^3.6.9",
+    "querystring": "^0.2.0",
+    "ssb-markdown": "^3.6.0",
+    "ssb-ref": "^2.13.6",
+    "stack": "^0.1.0",
+    "stream-to-pull-stream": "^1.7.2"
+  },
+  "devDependencies": {
+    "ssb-client": "^4.6.0"
+  },
+  "scripts": {
+    "test": "set -e; for t in test/*.js; do node $t; done"
+  },
+  "author": "Dominic Tarr <dominic.tarr@gmail.com> (http://dominictarr.com)",
+  "license": "MIT"
+}
