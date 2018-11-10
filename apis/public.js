@@ -13,7 +13,8 @@ var render = require('./message').render
 module.exports = function (opts) {
   var sbot = this.sbot, api = this.api
   opts.reverse = opts.reverse !== false
-  var min = !isNaN(+opts.lt) ? +opts.lt : Infinity
+  var min = !isNaN(+opts.lt) ? +opts.lt : Date.now()
+
   return h('div.Public',
     pull(
       sbot.query.read({
@@ -25,15 +26,13 @@ module.exports = function (opts) {
             },
             author: opts.author,
             private: opts.private ? true : {$is: 'undefined'},
+            timestamp: min ? {$lt: min} : undefined
           },
-          //I tried filtering by asserted time, but
-          //there is something wrong currently.
-          timestamp: opts.lt ? {$lt: opts.lt} : undefined
         }}],
         limit: 20, reverse: true
       }),
       pull.map(function (data) {
-        min = Math.min(data.timestamp, min)
+        min = Math.min(data.value.timestamp, min)
         return render(sbot, api, data)
       }),
       function (read) {
@@ -63,5 +62,4 @@ module.exports = function (opts) {
     )
   )
 }
-
 
