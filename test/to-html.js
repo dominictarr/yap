@@ -6,6 +6,8 @@ var h = u.h
 var toHTML = u.toHTML
 
 var hs = h('h1', function (cb) {
+  if(cb == null) throw new Error('cb should not be null')
+  console.log('CB?', cb)
   setTimeout(function () {
     cb(null, 'hello world')
   })
@@ -21,10 +23,8 @@ var hs = h('h1', function (cb) {
 
 console.error(hs)
 
-toHTML(hs)(function (err, el) {
+toHTML(function (cb) { cb(null, hs) })(function (err, el) {
   if(err) throw err
-  console.log(el.outerHTML)
+  console.log(el, el.outerHTML)
 })
-
-
 

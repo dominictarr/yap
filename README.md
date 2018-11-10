@@ -9,12 +9,14 @@ or invalidation based lightweight front ends.
 
 implement these all as independent routes
 
-* avatar
-* message
-* thread
-* public
+### views
+
+* avatar - done
+* message - done
+* thread - done
+* public - done
 * private
-* channel
+* channel - done
 * gathering
 * scry (meeting)
 * chess
@@ -26,6 +28,16 @@ implement these all as independent routes
   * commit
   * issue
   * pr
+
+### forms
+
+* change current identity
+* like button
+* post reply
+* recipients (include on every type, so you have instant privacy)
+* attach file
+
+
 
 
 

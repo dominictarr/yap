@@ -1,0 +1,47 @@
+img { max-width: 100%; }
+img.avatar { width: 50px; }
+img.emoji { width: 16px; }
+div.main { max-width: 800px; margin-left: auto; margin-right: auto; }
+div.Message {
+  margin: 50px;
+  display: flex;
+  flex-direction: row;
+}
+div.MessageMeta {
+  display: flex;
+  flex-direction: column;
+}
+
+#AppHeader {
+  position: fixed;
+  min-width: auto;
+  width: 100%;
+  height: 50px;
+  margin-top: 0px;
+  top: 0px;
+  background: white;
+  border-bottom: 1px solid black;
+}
+
+#AppNeck {
+  height: 50px;
+}
+
+.Menu {
+  margin: 1px;
+}
+
+.Menu ul {
+  padding: 0px;
+  margin: 0px;
+  position: absolute;
+  left: -9999px;
+}
+.Menu li {
+  position: relative;
+}
+
+.Menu:hover ul {
+  left: 0px;
+}
+

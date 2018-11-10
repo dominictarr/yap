@@ -1,5 +1,11 @@
 
 module.exports = {
   avatar: require('./avatar'),
-  message: require('./message')
+  message: require('./message'),
+  thread: require('./thread'),
+  public: require('./public'),
+  private: require('./private'),
+  "identity-select": require('./identity-select'),
 }
+
+

@@ -3,6 +3,7 @@ var QS = require('querystring')
 var hyperscript = require('hyperscript')
 var cpara = require('cont').para
 var pull = require('pull-stream')
+var paramap = require('pull-paramap')
 
 function isFunction (f) {
   return 'function' === typeof f
@@ -13,6 +14,10 @@ var isArray = Array.isArray
 function isEmpty (e) {
   for(var k in e) return false
   return true
+}
+
+function isString (s) {
+  return 'string' === typeof s
 }
 
 exports.toUrl = function toUrl(path, opts) {
@@ -27,14 +32,18 @@ exports.h = function () {
 }
 
 function toCont (f) {
-  if(f.length === 1) return f
+  if(f.length === 1) return function (cb) {
+    f(function (err, hs) {
+      exports.toHTML(hs)(cb)
+    })
+  }
   else if(f.length === 2)
     return function (cb) {
       pull(
         f,
-        pull.asyncMap(function (e, cb) {
+        paramap(function (e, cb) {
           exports.toHTML(e)(cb)
-        }),
+        }, 32),
         pull.collect(cb)
       )
     }
@@ -43,7 +52,7 @@ function toCont (f) {
 function flatten (a) {
   var _a = []
   for(var i = 0; i < a.length; i++)
-    if(isArray(a[i]))
+    if(isArray(a[i]) && !isString(a[i][0]))
       _a = _a.concat(flatten(a[i]))
     else
       _a.push(a[i])
@@ -56,19 +65,34 @@ function flatten (a) {
 var k = 0
 exports.toHTML = function toHTML (hs) {
   return function (cb) {
-    cpara(hs.map(function (e) {
-      return (
-        isFunction(e) ? toCont(e)
-      : isArray(e) ? toHTML(e)
-      : function (cb) {
-        cb(null, e)
-      })
-    }))(function (err, ary) {
-      console.log(k++, ary)
-      console.log(ary)
+    if(!isFunction(cb)) throw new Error('cb must be a function, was:'+cb)
+
+    var C = (
+      isFunction(hs) ? toCont(hs)
+    : isArray(hs) ? cpara(hs.map(toHTML))
+    : function (cb) {
+        cb(null, hs)
+      }
+    )
+
+    C(function (err, val) {
       if(err) cb(err)
-      else cb(null, hyperscript.apply(null, flatten(ary)))
+      else if(isArray(val) && isString(val[0])) {
+        cb(null, hyperscript.apply(null, flatten(val)))
+      } else
+        cb(null, val)
     })
   }
 }
+
+
+
+
+
+
+
+
+
+
+
 
