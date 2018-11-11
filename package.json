@@ -9,10 +9,12 @@
   },
   "dependencies": {
     "cont": "^1.0.3",
+    "hashlru": "^2.2.1",
     "html-escape": "^2.0.0",
     "hyperscript": "^2.0.2",
     "libnested": "^1.4.0",
     "markdown-summary": "^1.0.3",
+    "morphdom": "^2.3.3",
     "nice-ago": "^1.0.1",
     "patchwork-translations": "^1.5.4",
     "pull-paramap": "^1.2.2",
