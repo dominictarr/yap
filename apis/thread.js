@@ -110,6 +110,7 @@ function Compose (id, meta) {
 module.exports = function (opts) {
   var sbot = this.sbot, api = this.api, context = this.context
   return function (cb) {
+    var cacheTime = 0
     if(!ref.isMsg(opts.id))
       return cb(new Error('expected valid msg id as id'))
     sbot.get({id:opts.id, private: true}, function (err, msg) {
@@ -120,19 +121,26 @@ module.exports = function (opts) {
       else
         getThread(sbot, opts.id, function (err, ary) {
           ary.unshift(data)
-          var o = {}
+          var o = {}, cacheTime
           ary = ary.filter(function (e) {
+            cacheTime = Math.max(e.timestamp, cacheTime)
             if(o[e.key]) return false
             return o[e.key] = true
           })
           sort(ary)
-
+          var recipients = ' '
+          if(ary[0].value.content.recps)
+              recipients = ['div.Recipients', 'in this thread:', ary[0].value.content.recps.map(api.avatar)]
+          console.log(recipients, ary[0].value.content.recps)
+          
           cb(null,
             h('div.thread',
+              u.cacheTag(toUrl('thread', opts), data.key, cacheTime),
+              recipients,
               h('form', {name: 'publish', method: 'POST'},
                 ary.map(function (data) {
                   return h('div',
-                    render(sbot, api, data),
+                    render(sbot, api, data, cacheTime),
                     function (cb) {
                       backlinks(sbot, data.key, function (err, likes, backlinks) {
                         if(err) return cb(err)
@@ -168,6 +176,7 @@ module.exports = function (opts) {
     })
   }
 }
+
 
 
 

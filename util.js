@@ -98,4 +98,9 @@ exports.createHiddenInputs = function createHiddenInputs (meta, _path) {
   }, true)
   return hidden
 }
+exports.cacheTag = function (url, id, time) {
+  return ['link', {
+    rel: 'partial-refresh', href: url, id: id, 'data-cache': ''+time
+  }]
+}
 

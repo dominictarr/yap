@@ -7,10 +7,11 @@ var u = require('../util')
 var h = u.h
 toUrl = u.toUrl
 
-function render (sbot, api, data) {
+function render (sbot, api, data, cacheTime) {
   var time = data.value.timestamp || data.timestamp
 
   return h('div.Message',
+    u.cacheTag(toUrl('message', {id: data.key}), data.key, cacheTime),
     h('div.MessageMeta',
       api.avatar({id: data.value.author}),
       h('a', {
@@ -40,6 +41,9 @@ function render (sbot, api, data) {
           : image ? null : image //no external image links allowed!
           )
         },
+        imageLink: function (href) {
+          return this.toUrl(href)
+        },
         emoji: function (emoji) {
           return '<img class="emoji" src="http://localhost:8989/img/emoji/'+htmlEscape(emoji)+'.png">'
         }
@@ -62,6 +66,7 @@ module.exports = function (opts) {
 }
 
 module.exports.render = render
+
 
 
 
