@@ -7,7 +7,7 @@ module.exports = function (opts) {
   var main = context.id || sbot.id
   return ['form', {method: 'POST'},
     ['div.IdentitySelector._menu',
-      ['input', {type: 'hidden', name: 'type', value: 'identity-select'}],
+      ['input', {type: 'hidden', name: 'type', value: 'identitySelect'}],
       ['div.Menu',
         ['a', {href: toUrl('profile', {id:context.id})},
           api.avatar({id: context.id, name: true, image: true})
@@ -32,6 +32,7 @@ module.exports = function (opts) {
     ]
   ]
 }
+
 
 
 
