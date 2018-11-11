@@ -4,7 +4,7 @@ var hyperscript = require('hyperscript')
 var cpara = require('cont').para
 var pull = require('pull-stream')
 var paramap = require('pull-paramap')
-
+var nested = require('libnested')
 function isFunction (f) {
   return 'function' === typeof f
 }
@@ -85,14 +85,17 @@ exports.toHTML = function toHTML (hs) {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
+exports.createHiddenInputs = function createHiddenInputs (meta, _path) {
+  _path = _path ? [].concat(_path) : []
+  var hidden = []
+  nested.each(meta, function (value, path) {
+    if(value !== undefined)
+      hidden.push(['input', {
+        name: _path.concat(path).map(function (e) { return '['+e+']' }).join(''),
+        value: value,
+        type: 'hidden'
+      }])
+  }, true)
+  return hidden
+}
 

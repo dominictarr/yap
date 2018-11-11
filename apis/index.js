@@ -5,7 +5,17 @@ module.exports = {
   thread: require('./thread'),
   public: require('./public'),
   private: require('./private'),
-  "identity-select": require('./identity-select'),
+  preview: require('./preview'),
+  search: require('./search'),
+  identitySelect: require('./identity-select'),
+  gathering: require('yap-gathering'),
+  gatherings: require('yap-gathering/all'),
+  messageLink: require('./message-link'),
+  channelLink: require('./channel-link')
 }
+
+
+
+
 
 

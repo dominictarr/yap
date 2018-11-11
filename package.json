@@ -1,6 +1,6 @@
 {
-  "name": "yap",
-  "description": "",
+  "name": "yyy",
+  "description": "Yet Another Patchwork client",
   "version": "1.0.0",
   "homepage": "https://github.com/dominictarr/yap",
   "repository": {
@@ -23,7 +23,8 @@
     "ssb-ref": "^2.13.6",
     "ssb-sort": "^1.1.0",
     "stack": "^0.1.0",
-    "stream-to-pull-stream": "^1.7.2"
+    "stream-to-pull-stream": "^1.7.2",
+    "to-camel-case": "^1.0.0"
   },
   "devDependencies": {
     "ssb-client": "^4.6.0"

@@ -1,7 +1,6 @@
 var pull = require('pull-stream')
 var ref = require('ssb-ref')
 var msum = require('markdown-summary')
-
 var sort = require('ssb-sort')
 
 var u = require('../util')
@@ -11,21 +10,36 @@ toUrl = u.toUrl
 
 var render = require('./message').render
 
+function uniqueRecps (recps) {
+  if(!recps || !recps.length) return
+  recps = recps.map(function (e) {
+    return 'string' === typeof e ? e : e.link
+  })
+  .filter(Boolean)
+  return recps.filter(function (id, i) {
+    return !~recps.indexOf(id, i+1)
+  })
+}
+
 function getThread(sbot, id, cb) {
-  sbot.get({id: id, private: true}, function (err, msg) {
+  //sbot.get({id: id, private: true}, function (err, msg) {
     pull(
       sbot.query.read({
+        //hack so that ssb-query filters on post but uses
+        //indexes for root.
         query: [{$filter: {
-          value: { content: {type: 'post', root: id} }
+          value: { content: {root: id} }
+        }},{$filter: {
+          value: { content: {type: 'post'} }
         }}]
       }),
       pull.collect(function (err, ary) {
         if(err) return cb(err)
-        sort(ary)
+//        sort(ary)
         cb(null, ary)
       })
     )
-  })
+  //})
 }
 
 function isObject(o) {
@@ -38,7 +52,6 @@ function backlinks (sbot, id, cb) {
   pull(
     sbot.links({dest: id, values: true}),
     pull.drain(function (e) {
-      console.log(e)
       var content = e.value.content
       var vote = content.vote
       if(isObject(vote) &&
@@ -78,9 +91,24 @@ function backlinks (sbot, id, cb) {
   so that kinda needs to be split between two fields.
 */
 
+function Compose (id, meta) {
+  return h('form', {name: 'publish', method: 'POST'},
+    //selected id to post from. this should
+    //be a dropdown, that only defaults to context.id
+    h('input', {
+      name: 'id', value: id, type: 'hidden'
+    }),
+    //root + branch. not shown in interface.
+    u.createHiddenInputs(meta, 'content'),
+
+    h('textarea', {name: 'content[text]'}),
+    h('input', {type: 'submit', name: 'type', value:'preview'}, 'Preview'),
+    h('input', {type: 'submit', name: 'type', value:'publish'}, 'Publish')
+  )
+}
 
 module.exports = function (opts) {
-  var sbot = this.sbot, api = this.api
+  var sbot = this.sbot, api = this.api, context = this.context
   return function (cb) {
     if(!ref.isMsg(opts.id))
       return cb(new Error('expected valid msg id as id'))
@@ -92,6 +120,13 @@ module.exports = function (opts) {
       else
         getThread(sbot, opts.id, function (err, ary) {
           ary.unshift(data)
+          var o = {}
+          ary = ary.filter(function (e) {
+            if(o[e.key]) return false
+            return o[e.key] = true
+          })
+          sort(ary)
+
           cb(null,
             h('div.thread',
               h('form', {name: 'publish', method: 'POST'},
@@ -106,10 +141,13 @@ module.exports = function (opts) {
                           (backlinks.length ?
                           ['ul.MessageBacklinks',
                             backlinks.map(function (e) {
-                              return ['li', ['a',
-                                {href: toUrl('thread', {id: e.key})},
-                                msum.title(e.value.content.text)
-                              ]]
+                              return ['li',
+                                api.avatar({id:e.value.author}),
+                                ' ',
+                                api.messageLink(e),
+                                ' ',
+                                e.value.content.channel && api.channelLink(e.value.content.channel)
+                              ]
                             })
                           ] : '')
                         ])
@@ -118,44 +156,18 @@ module.exports = function (opts) {
                   )
                 })
               ),
-              h('form', {name: 'publish', method: 'POST'},
-                h('input', {name: 'id', value: sbot.id, type: 'hidden'}),
-                h('input', {name: 'content[root]', value: JSON.stringify(opts.id), type: 'hidden'}),
-                sort.heads(ary).map(function (head, i) {
-                  return h('input', {name: 'content[branch]['+i+']', value: head, type: 'hidden'})
-                }),
-                h('input', {name: 'content[number]', type: 'number'}),
-                h('input', {name: 'content[boolean]', type: 'checkbox', value:true}),
-                h('input', {name: 'content[time]', type: 'time', value: new Date().toISOString()}),
-                h('input', {name: 'content[channel]', value: ary[0].value.content.channel, type: 'hidden'}),
-                h('input', {type: 'submit', value:'PUBLISH1', name: 'submit1'}),
-                h('input', {type: 'submit', value:'PUBLISH2', name: 'submit2'}),
-                h('input', {type: 'submit', value:'PUBLISH'})
-              )
+              Compose(context.id, {
+                type: 'post',
+                root: opts.id,
+                recps: uniqueRecps(ary[0].value.content.recps),
+                branch: sort.heads(ary)
+              })
             )
           )
         })
     })
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

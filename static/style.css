@@ -1,7 +1,11 @@
 img { max-width: 100%; }
 img.avatar { width: 50px; }
+li img.avatar { width: 30px; }
 img.emoji { width: 16px; }
-div.main { max-width: 800px; margin-left: auto; margin-right: auto; }
+div.main {
+  padding-top: 100px;
+  max-width: 800px; margin-left: auto; margin-right: auto;
+}
 div.Message {
   margin: 50px;
   display: flex;
@@ -21,27 +25,41 @@ div.MessageMeta {
   top: 0px;
   background: white;
   border-bottom: 1px solid black;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
-#AppNeck {
-  height: 50px;
+.IdentitySelector button {
+  max-width: 100px;
+  overflow: hidden;
+  word-break: keep-all;
 }
 
-.Menu {
+/*
+  drop down menu, functional aspects
+*/
+
+._menu {
   margin: 1px;
 }
 
-.Menu ul {
+._menu ul {
   padding: 0px;
   margin: 0px;
   position: absolute;
-  left: -9999px;
+  /*left: -9999px;*/
+  display: none;
+  list-style: none;
 }
-.Menu li {
+._menu li {
   position: relative;
 }
 
-.Menu:hover ul {
-  left: 0px;
+._menu:hover ul {
+/*  left: 0;*/
+  display: block;
 }
+
+
 
