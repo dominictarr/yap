@@ -98,9 +98,13 @@ exports.createHiddenInputs = function createHiddenInputs (meta, _path) {
   }, true)
   return hidden
 }
+
+var cacheId = exports.cacheId = function (id) {
+  return '_'+Buffer.from(id.substring(1, 12), 'base64').toString('hex')
+}
 exports.cacheTag = function (url, id, time) {
   return ['link', {
-    rel: 'partial-refresh', href: url, id: id, 'data-cache': ''+time
+    rel: 'partial-refresh', href: url, id: cacheId(id), 'data-cache': ''+time
   }]
 }
 
