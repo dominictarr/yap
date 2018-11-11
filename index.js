@@ -10,6 +10,7 @@ var toHTML = u.toHTML
 var h = u.h
 var pull = require('pull-stream')
 var toPull = require('stream-to-pull-stream')
+var CacheWatcher = require('./cache-watcher')
 
 //actions may make writes to sbot, or can set things
 var actions = {
@@ -41,7 +42,8 @@ function layout(content) {
   return h('html',
     h('head',
       h('meta', {charset: 'UTF-8'}),
-      h('link', {href: '/static/style.css', rel: 'stylesheet'})
+      h('link', {href: '/static/style.css', rel: 'stylesheet'}),
+      h('script', {src: '/static/cache.js'})
     ),
     h('body',
         h('div#AppHeader',
@@ -61,8 +63,11 @@ function layout(content) {
   )
 }
 
+
 require('ssb-client')(function (err, sbot) {
   if(err) throw err
+
+  var watcher = CacheWatcher(sbot)
 
   var apis = {}
   nested.map(_apis, function (fn, path) {
@@ -71,6 +76,22 @@ require('ssb-client')(function (err, sbot) {
     }
     nested.set(apis, path, method)
   })
+
+  function render (embed, req, res, next) {
+    var url = URL.parse(req.url)
+    var path = url.pathname.split('/').slice(1)
+    var opts = QS.parse(url.query)
+    var context = req.context
+    var fn = nested.get(apis, path)
+    if(!fn) return next()
+    var self = {context: context, api: apis, sbot: sbot, since: watcher.since()}
+    console.log("SINCE", watcher.since())
+    var A = fn.call(self, opts)
+    toHTML(!embed ? layout.call(self, A) : A) (function (err, result) {
+      if(err) next(err)
+      else res.end(result.outerHTML)
+    })
+  }
 
   require('http').createServer(Stack(
     /*
@@ -83,56 +104,76 @@ require('ssb-client')(function (err, sbot) {
       state people might not want for them.
       also: light/dark theme etc
     */
-    function (req, res, next) {
+    function collectBody (req, res, next) {
+      if(req.method !== "POST") next()
+      pull(
+        toPull.source(req),
+        pull.collect(function (err, ary) {
+          req.body = Buffer.concat(ary).toString('utf8')
+          next()
+        })
+      )
+    },
+    function CheckCache (req, res, next) {
       req.context = QS.parse(req.headers.cookie||'') || {id: sbot.id}
       req.context.id = req.context.id || sbot.id
-      next()
+      if(req.url !== '/check-cache') return next()
+      var check
+      try {
+        check = JSON.parse(req.body)
+      } catch (err) { return next(err) }
+      console.error('CHECK', check)
+      var r = {}
+      for(var k in check) {
+        var v = watcher.check(k, check[k])
+        if(v) r[k] = v
+      }
+      res.end(JSON.stringify(r))
      },
     function (req, res, next) {
       if(req.method == 'GET') return next()
       var id = req.context.id || sbot.id
       var self = {context: req.context, sbot: sbot, api: apis}
-      pull(
-        toPull.source(req),
-        pull.collect(function (err, ary) {
-          var raw = Buffer.concat(ary).toString('utf8')
-          var opts = QS.parse(raw)
-          if(opts.type === 'preview') {
-            toHTML(layout.call(self, apis.preview({
-              key: '%dummy',
-              value: {
-                author: opts.id,
-                content: opts.content
-              },
-              timestamp: Date.now()
-            }))) (function (err, result) {
-              if(err) next(err)
-              else res.end(result.outerHTML)
-            })
-            return
-          }
-          actions[opts.type].call({sbot: sbot, context: req.context}, opts, function (err, _opts, context) {
-            if(context) {
-              req.context = context
-              res.setHeader('set-cookie', QS.stringify(context))
-            }
-            /*
-              after handling the post,
-              redirect to a normal page.
-              this is a work around for if you hit refresh
-              and the browser wants to resubmit the POST.
-
-              I think we want to do this for most types,
-              exception is for preview - in which we return
-              the same data rendered differently and don't write
-              to DB at all.
-            */
-            res.setHeader('location', req.url)
-            res.writeHead(303)
-            res.end()
-          })
+      var opts = QS.parse(req.body)
+      if(opts.type === 'preview') {
+        toHTML(layout.call(self, apis.preview({
+          key: '%dummy',
+          value: {
+            author: opts.id,
+            content: opts.content
+          },
+          timestamp: Date.now()
+        }))) (function (err, result) {
+          if(err) next(err)
+          else res.end(result.outerHTML)
         })
-      )
+        return
+      }
+      actions[opts.type].call({sbot: sbot, context: req.context}, opts, function (err, _opts, context) {
+        if(context) {
+          req.context = context
+          res.setHeader('set-cookie', QS.stringify(context))
+        }
+        /*
+          after handling the post,
+          redirect to a normal page.
+          this is a work around for if you hit refresh
+          and the browser wants to resubmit the POST.
+
+          I think we want to do this for most types,
+          exception is for preview - in which we return
+          the same data rendered differently and don't write
+          to DB at all.
+        */
+        res.setHeader('location', req.url)
+        res.writeHead(303)
+        res.end()
+      })
+    },
+    function (req, res, next) {
+      if(!/\/partial\//.test(req.url)) return next()
+      req.url = req.url.substring('/partial'.length)
+      render(true, req, res, next)
     },
     function (req, res, next) {
       if(/\/static\/[\w\d-_]+\.\w+/.test(req.url))
@@ -142,28 +183,8 @@ require('ssb-client')(function (err, sbot) {
         next()
     },
     function (req, res, next) {
-      var url = URL.parse(req.url)
-      var path = url.pathname.split('/').slice(1)
-      var opts = QS.parse(url.query)
-      var context = req.context
-      var fn = nested.get(apis, path)
-      if(!fn) return next()
-      var self = {context: context, api: apis, sbot: sbot}
-      var A = fn.call(self, opts)
-      toHTML(!opts.embed ? layout.call(self, A) : A) (function (err, result) {
-        if(err) next(err)
-        else res.end(result.outerHTML)
-      })
+      render(false, req, res, next)
     }
   )).listen(8000)
 })
-
-
-
-
-
-
-
-
-
 

@@ -109,6 +109,7 @@ function Compose (id, meta) {
 
 module.exports = function (opts) {
   var sbot = this.sbot, api = this.api, context = this.context
+  var since = this.since
   return function (cb) {
     var cacheTime = 0
     if(!ref.isMsg(opts.id))
@@ -123,7 +124,6 @@ module.exports = function (opts) {
           ary.unshift(data)
           var o = {}, cacheTime
           ary = ary.filter(function (e) {
-            cacheTime = Math.max(e.timestamp, cacheTime)
             if(o[e.key]) return false
             return o[e.key] = true
           })
@@ -131,16 +131,14 @@ module.exports = function (opts) {
           var recipients = ' '
           if(ary[0].value.content.recps)
               recipients = ['div.Recipients', 'in this thread:', ary[0].value.content.recps.map(api.avatar)]
-          console.log(recipients, ary[0].value.content.recps)
-          
           cb(null,
             h('div.thread',
-              u.cacheTag(toUrl('thread', opts), data.key, cacheTime),
+              u.cacheTag(toUrl('thread', opts), data.key, since),
               recipients,
               h('form', {name: 'publish', method: 'POST'},
                 ary.map(function (data) {
                   return h('div',
-                    render(sbot, api, data, cacheTime),
+                    render(sbot, api, data, since),
                     function (cb) {
                       backlinks(sbot, data.key, function (err, likes, backlinks) {
                         if(err) return cb(err)
@@ -176,11 +174,4 @@ module.exports = function (opts) {
     })
   }
 }
-
-
-
-
-
-
-
 

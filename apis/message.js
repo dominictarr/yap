@@ -7,11 +7,10 @@ var u = require('../util')
 var h = u.h
 toUrl = u.toUrl
 
-function render (sbot, api, data, cacheTime) {
+function render (sbot, api, data, since) {
   var time = data.value.timestamp || data.timestamp
-
   return h('div.Message',
-    u.cacheTag(toUrl('message', {id: data.key}), data.key, cacheTime),
+    u.cacheTag(toUrl('message', {id: data.key}), data.key, since),
     h('div.MessageMeta',
       api.avatar({id: data.value.author}),
       h('a', {
@@ -57,7 +56,7 @@ module.exports = function (opts) {
   return function (cb) {
     if(!ref.isMsg(opts.id))
       return cb(new Error('expected valid msg id as id'))
-    sbot.get(opts.id, function (err, msg) {
+    sbot.get({id:opts.id, private: true}, function (err, msg) {
       if(err) return cb(err)
       var data = {key: opts.id, value: msg, timestamp: msg.timestamp || Date.now() }
       cb(null, render(sbot, api, data))
@@ -66,9 +65,4 @@ module.exports = function (opts) {
 }
 
 module.exports.render = render
-
-
-
-
-
 
