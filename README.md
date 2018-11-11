@@ -2,8 +2,11 @@
 
 _yet another_ approach to writing patchapps.
 
-intended for server side html rendering (like patchfoo)
+Intended for server side html rendering (like patchfoo)
 or invalidation based lightweight front ends.
+
+see also:
+  * [the state of yap](https://en.wikipedia.org/wiki/Yap)
 
 ## TODO
 
@@ -39,4 +42,5 @@ implement these all as independent routes
 * attach file
 
 preview post
+
 
