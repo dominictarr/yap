@@ -3,6 +3,11 @@ var h = require('../util').h
 
 module.exports = function (opts) {
   var sbot = this.sbot
+  //accept feed directly, so you can do map(api.avatar)
+  if(ref.isFeed(opts))
+    opts = {id: opts}
+  if(ref.isFeed(opts.link))
+    opts = {id: opts.link}
   return function (cb) {
     if(!ref.isFeed(opts.id))
       return cb(new Error('expected valid feed id as id'))
@@ -20,7 +25,4 @@ module.exports = function (opts) {
     })
   }
 }
-
-
-
 
