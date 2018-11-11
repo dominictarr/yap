@@ -1,4 +1,4 @@
-# patchya (patch-yet-another)
+# yap (yet-another-patch*)
 
 _yet another_ approach to writing patchapps.
 
@@ -31,13 +31,12 @@ implement these all as independent routes
 
 ### forms
 
-* change current identity
+* change current identity - partly
+* change language
 * like button
 * post reply
 * recipients (include on every type, so you have instant privacy)
 * attach file
 
-
-
-
+preview post
 
