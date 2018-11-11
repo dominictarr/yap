@@ -4,6 +4,10 @@ var pull = require('pull-stream')
 var nested = require('libnested')
 
 module.exports = function (sbot) {
+  //TODO: switch to a cache implementation
+  //where you can access the oldest value
+  //so that when an eviction happens can increase
+  //`since`.
   var cache = HashLRU(1024)
   function latest (cb) {
     var source = sbot.createLogStream({limit: 1, reverse:true, raw: true, values: false})
