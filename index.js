@@ -29,7 +29,6 @@ var actions = {
     if(opts.content.recps)
       opts.private = true
     this.sbot.identities.publishAs(opts, function (err, msg) {
-      console.log('published:', err, msg)
       if(err) cb(err)
       else cb()
     })
@@ -64,7 +63,6 @@ function layout(content) {
       h('div.main', content)
     )
   )
-  //)
 }
 
 var favicon = fs.readFileSync(path.join(__dirname, 'static', 'favicon.ico'))
@@ -90,7 +88,6 @@ require('ssb-client')(function (err, sbot) {
     var fn = nested.get(apis, path)
     if(!fn) return next()
     var self = {context: context, api: apis, sbot: sbot, since: watcher.since()}
-    console.log("SINCE", watcher.since())
     var A = fn.call(self, opts)
     toHTML(!embed ? layout.call(self, A) : A) (function (err, result) {
       if(err) next(err)
@@ -135,7 +132,6 @@ require('ssb-client')(function (err, sbot) {
       try {
         check = JSON.parse(req.body)
       } catch (err) { return next(err) }
-      console.error('CHECK', check)
       var r = {}
       for(var k in check) {
         var v = watcher.check(k, check[k])
@@ -200,4 +196,5 @@ require('ssb-client')(function (err, sbot) {
     }
   )).listen(8005)
 })
+
 

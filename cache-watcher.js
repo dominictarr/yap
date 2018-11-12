@@ -29,7 +29,6 @@ module.exports = function (sbot) {
 
     watching = true
     latest(function (err, seq) {
-      console.log("LATEST", err, seq)
       if(err) {
         watching = false
         //something wen't wrong, clear the whole cache,
@@ -80,22 +79,21 @@ module.exports = function (sbot) {
       if(since === undefined) throw new Error('since undefined')
       return since
     },
-    //check wether an id needs to be revalidated.
-    //answer can be YES, NO or MAYBE.
-    //treating MAYBE like YES is called "optimistic" in computer science.
-    //we only keep track of recently updated things.
-    //user requests an update, and provides an id and the sequence.
-    //the sequence indicates how recent their value is.
-    //if we have a more recent sequence for that id, then YES. revalidate.
-    //if their sequence is older than the range we've been watching
-    //answer is MAYBE.
-    //if the sequence is is recent (since we've been watching)
-    //but hasn't changed then NO.
+    //  check wether an id needs to be revalidated.
+    //  answer can be YES, NO or MAYBE.
+    //  treating MAYBE like YES is called "optimistic" in computer science.
+    //  we only keep track of recently updated things.
+    //  user requests an update, and provides an id and the sequence.
+    //  the sequence indicates how recent their value is.
+    //  if we have a more recent sequence for that id, then YES. revalidate.
+    //  if their sequence is older than the range we've been watching
+    //  answer is MAYBE.
+    //  if the sequence is is recent (since we've been watching)
+    //  but hasn't changed then NO.
 
     check: function checkRevalidate (id, seq) {
       var _seq = cache.get(id)
       //the cached value is within the range we have been tracking
-      console.log('check', _seq, seq, id)
       if(seq >= since)
         //revalidate if we have a new value for that id
         return _seq && _seq > seq ? _seq : undefined //"yes" or "no".

@@ -11,11 +11,9 @@ function scan () {
 window.onload = function () {
   var start2 = Date.now()
   scan()
-  console.log('traversed', Date.now() - start2)
 }
 
 window.onfocus = function () {
-  console.log('FOCUS', Date.now() - _focus)
   _focus = Date.now()
   check(1)
 }
@@ -25,9 +23,6 @@ function check () {
   xhr.onload = function () {
     if(xhr.responseText)
       var updates = JSON.parse(xhr.responseText)
-    else
-      console.log(xhr.responseText)
-    console.error('updates', updates)
     //mark any nodes that look like they need updating.
     var elements = [], parents = []
     for(var k in updates)
@@ -62,16 +57,10 @@ function update (el) {
   var xhr = new XMLHttpRequest()
   xhr.onload = function () {
     //update html
-    console.log("REPLACE", xhr.responseText)
     morph(el.parentNode, xhr.responseText)
   }
   href = href.substring(location.origin.length)
-  console.log("GET", '/partial'+href)
   xhr.open('get', '/partial'+href)
   xhr.send()
 }
-
-
-
-
 
