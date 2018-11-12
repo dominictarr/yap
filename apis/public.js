@@ -15,7 +15,12 @@ module.exports = function (opts) {
   opts.reverse = opts.reverse !== false
   var min = !isNaN(+opts.lt) ? +opts.lt : Date.now()
 
-  return h('div.Public',
+  var type = (opts.private ? 'private' : 'public')
+  var Type = (opts.private ? 'Private' : 'Public')
+
+
+  return h('div.' + Type,
+    h('title', Type),
     pull(
       sbot.query.read({
         query: [{$filter: {
@@ -41,7 +46,7 @@ module.exports = function (opts) {
           console.log("LAST", min)
           return [
             'a', {
-              href: toUrl('public', Object.assign({}, opts, {lt: min}))
+              href: toUrl(type, Object.assign({}, opts, {lt: min}))
             },
             'Load More'
           ]
@@ -62,4 +67,5 @@ module.exports = function (opts) {
     )
   )
 }
+
 

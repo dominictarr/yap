@@ -14,7 +14,7 @@ function render (sbot, api, data, since) {
     h('div.MessageMeta',
       api.avatar({id: data.value.author}),
       h('a', {
-        href: toUrl('thread', {id: data.key}),
+        href: toUrl('message', {id: data.key}),
         title: new Date(time)+'\n'+data.key
       },
         ''+niceAgo(Date.now(), time)
@@ -33,7 +33,7 @@ function render (sbot, api, data, since) {
       {innerHTML: Markdown.block(data.value.content.text, {
         toUrl: function (url, image) {
           return (
-            ref.isFeed(url) ? toUrl('profile', {id: url})
+            ref.isFeed(url) ? toUrl('public', {author: url})
           : ref.isMsg(url) ? toUrl('thread', {id: url})
           : ref.isBlob(url) ?
               'http://localhost:8989/blobs/get/'+url

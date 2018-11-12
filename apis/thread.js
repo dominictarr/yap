@@ -134,6 +134,7 @@ module.exports = function (opts) {
           cb(null,
             h('div.thread',
               u.cacheTag(toUrl('thread', opts), data.key, since),
+              h('title', msum.title(ary[0].value.content.text)),
               recipients,
               h('form', {name: 'publish', method: 'POST'},
                 ary.map(function (data) {
