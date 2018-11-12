@@ -12,6 +12,8 @@ var pull = require('pull-stream')
 var toPull = require('stream-to-pull-stream')
 var CacheWatcher = require('./cache-watcher')
 
+var doctype = '<!DOCTYPE html \n  PUBLIC "-//W3C//DTD HTML 4.01//EN"\n  "http://www.w3.org/TR/html4/strict.dtd">'
+
 //actions may make writes to sbot, or can set things
 var actions = {
   //note: opts is post body
@@ -40,14 +42,15 @@ var actions = {
 
 function layout(content) {
   return h('html',
-    h('head',
-      h('meta', {charset: 'UTF-8'}),
-      h('link', {href: '/static/style.css', rel: 'stylesheet'}),
-      h('script', {src: '/static/cache.js'})
-    ),
-    h('body',
+      h('head', {profile: "http://www.w3.org/2005/10/profile"},
+        h('meta', {charset: 'UTF-8'}),
+        h('link', {href: '/static/style.css', rel: 'stylesheet'}),
+        h('script', {src: '/static/cache.js'}),
+        h('link', {rel: 'icon', type: 'image/png', href: '/favicon.ico?test=1'}),
+      ),
+      h('body',
         h('div#AppHeader',
-          h('h2', 'yap'),
+          h('h2', {style: 'display:flex;flex-direction:row'}, 'yap', h('img', {src: '/favicon.ico'})),
           ['a', {href: '/public'}, 'Public'],
           ['a', {href: '/private'}, 'Private'],
           ['a', {href: '/gatherings'}, 'Gatherings'],
@@ -61,8 +64,10 @@ function layout(content) {
       h('div.main', content)
     )
   )
+  //)
 }
 
+var favicon = fs.readFileSync(path.join(__dirname, 'static', 'favicon.ico'))
 
 require('ssb-client')(function (err, sbot) {
   if(err) throw err
@@ -89,7 +94,7 @@ require('ssb-client')(function (err, sbot) {
     var A = fn.call(self, opts)
     toHTML(!embed ? layout.call(self, A) : A) (function (err, result) {
       if(err) next(err)
-      else res.end(result.outerHTML)
+      else res.end((embed ? '' : doctype)+result.outerHTML)
     })
   }
 
@@ -104,6 +109,14 @@ require('ssb-client')(function (err, sbot) {
       state people might not want for them.
       also: light/dark theme etc
     */
+    function (req, res, next) {
+      if(req.url == '/favicon.ico')
+        return res.end(favicon)
+      if(req.url == '/')
+        return res.end('<h1>yap<img src="/favicon.ico"></h1>')
+
+      next()
+    },
     function collectBody (req, res, next) {
       if(req.method !== "POST") next()
       pull(
@@ -145,7 +158,7 @@ require('ssb-client')(function (err, sbot) {
           timestamp: Date.now()
         }))) (function (err, result) {
           if(err) next(err)
-          else res.end(result.outerHTML)
+          else res.end('<!DOCTYPE html>'+result.outerHTML)
         })
         return
       }
@@ -185,6 +198,6 @@ require('ssb-client')(function (err, sbot) {
     function (req, res, next) {
       render(false, req, res, next)
     }
-  )).listen(8000)
+  )).listen(8005)
 })
 
