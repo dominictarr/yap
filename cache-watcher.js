@@ -99,7 +99,7 @@ module.exports = function (sbot) {
         //revalidate if we have a new value for that id
         return _seq && _seq > seq ? _seq : undefined //"yes" or "no".
       //if the value is really old "maybe"
-      else if(seq <= since)
+      else if(seq < since)
         return -1
       //we just return true or false. true means yes or maybe.
     },
@@ -109,6 +109,5 @@ module.exports = function (sbot) {
     }
   }
 }
-
 
 
