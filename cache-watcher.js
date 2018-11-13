@@ -35,6 +35,7 @@ module.exports = function (sbot) {
         //reload everything, but it's probably broken
         //otherwise this would not have errored.
         cache.clear()
+        start = since = null
         rescheduce(10e3)
         return
       }
@@ -94,7 +95,7 @@ module.exports = function (sbot) {
     check: function checkRevalidate (id, seq) {
       var _seq = cache.get(id)
       //the cached value is within the range we have been tracking
-      if(seq >= since)
+      if(seq >= start)
         //revalidate if we have a new value for that id
         return _seq && _seq > seq ? _seq : undefined //"yes" or "no".
       //if the value is really old "maybe"
@@ -108,4 +109,6 @@ module.exports = function (sbot) {
     }
   }
 }
+
+
 
