@@ -81,7 +81,9 @@ require('ssb-client')(function (err, sbot) {
     var context = req.context
     function callApi (path, opts) {
       console.log('CALL', path, opts)
-      try { return nested.get(apis, path).call(self, opts) }
+      var fn = nested.get(apis, path)
+      if(!fn) return next(new Error('no method at path:'+JSON.stringify(path)))
+      try { return fn.call(self, opts) }
       catch (err) { next(err) }
     }
     var self = {
@@ -147,7 +149,7 @@ require('ssb-client')(function (err, sbot) {
       var opts = QS.parse(req.body)
       var self = {
         context: req.context,
-        sbot: sbot, api: apis,
+        sbot: sbot, api: callApi,
         since: watcher.since()
       }
       function callApi (path, opts) {
