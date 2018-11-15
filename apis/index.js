@@ -12,6 +12,9 @@ module.exports = {
 //  gatherings: require('yap-gathering/all'),
   messageLink: require('./message-link'),
   channelLink: require('./channel-link'),
-  raw: require('./raw')
+  raw: require('./raw'),
+  messages: require('./messages')
 }
+
+
 

@@ -6,33 +6,36 @@ var u = require('../util')
 var h = u.h
 toUrl = u.toUrl
 
+var messageTypes = require('./messages')
+
 module.exports = u.createRenderer(function render (data) {
-  var sbot = this.sbot
-  var api = this.api
-  var since = this.since
-  var time = data.value.timestamp || data.timestamp
-  return h('div.Message',
-    u.cacheTag(toUrl('message', {id: data.key}), data.key, since),
-    h('div.MessageMeta',
-      api(['avatar'], {id: data.value.author, name: true, image: true}),
-      h('a', {
-        href: toUrl('message', {id: data.key}),
-        title: new Date(time)+'\n'+data.key
-      },
-        ''+niceAgo(Date.now(), time)
-      ),
-      h('label.type', data.value.content.type),
-      h('label.msgId', data.key),
-
-      data.value.content.channel
-        ? h('a', {href: toUrl('public', {channel: data.value.content.channel})}, '#'+data.value.content.channel)
-        : '',
-
-      h('a', {href: toUrl('thread', {id: data.value.content.root || data.key})}, 'Thread')
-
-    ),
-    h('div.MessageContent', u.markdown(data.value.content))
-  )
+    return this.api(['messages', data.value.content.type], data)
+//  var sbot = this.sbot
+//  var api = this.api
+//  var since = this.since
+//  var time = data.value.timestamp || data.timestamp
+//  return h('div.Message',
+//    u.cacheTag(toUrl('message', {id: data.key}), data.key, since),
+//    h('div.MessageMeta',
+//      api(['avatar'], {id: data.value.author, name: true, image: true}),
+//      h('a', {
+//        href: toUrl('message', {id: data.key}),
+//        title: new Date(time)+'\n'+data.key
+//      },
+//        ''+niceAgo(Date.now(), time)
+//      ),
+//      h('label.type', data.value.content.type),
+//      h('label.msgId', data.key),
+//
+//      data.value.content.channel
+//        ? h('a', {href: toUrl('public', {channel: data.value.content.channel})}, '#'+data.value.content.channel)
+//        : '',
+//
+//      h('a', {href: toUrl('thread', {id: data.value.content.root || data.key})}, 'Thread')
+//
+//    ),
+//    h('div.MessageContent', u.markdown(data.value.content))
+//  )
 })
 
 //module.exports = function (opts) {
@@ -51,4 +54,5 @@ module.exports = u.createRenderer(function render (data) {
 //
 //module.exports.render = render
 //
+
 
