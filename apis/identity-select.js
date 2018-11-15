@@ -10,7 +10,7 @@ module.exports = function (opts) {
       ['input', {type: 'hidden', name: 'type', value: 'identitySelect'}],
       ['div.Menu',
         ['a', {href: toUrl('profile', {id:context.id})},
-          api.avatar({id: context.id, name: true, image: true})
+          api(['avatar'], {id: context.id, image: true})
         ],
         ['ul',
           function (cb) {

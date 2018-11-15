@@ -8,8 +8,6 @@ var u = require('../util')
 var h = u.h
 toUrl = u.toUrl
 
-var render = require('./message').render
-
 function uniqueRecps (recps) {
   if(!recps || !recps.length) return
   recps = recps.map(function (e) {
@@ -22,24 +20,21 @@ function uniqueRecps (recps) {
 }
 
 function getThread(sbot, id, cb) {
-  //sbot.get({id: id, private: true}, function (err, msg) {
-    pull(
-      sbot.query.read({
-        //hack so that ssb-query filters on post but uses
-        //indexes for root.
-        query: [{$filter: {
-          value: { content: {root: id} }
-        }},{$filter: {
-          value: { content: {type: 'post'} }
-        }}]
-      }),
-      pull.collect(function (err, ary) {
-        if(err) return cb(err)
-//        sort(ary)
-        cb(null, ary)
-      })
-    )
-  //})
+  pull(
+    sbot.query.read({
+      //hack so that ssb-query filters on post but uses
+      //indexes for root.
+      query: [{$filter: {
+        value: { content: {root: id} }
+      }},{$filter: {
+        value: { content: {type: 'post'} }
+      }}]
+    }),
+    pull.collect(function (err, ary) {
+      if(err) return cb(err)
+      cb(null, ary)
+    })
+  )
 }
 
 function isObject(o) {
@@ -103,8 +98,24 @@ function Compose (id, meta) {
 
     h('textarea', {name: 'content[text]'}),
     h('input', {type: 'submit', name: 'type', value:'preview'}, 'Preview'),
-    h('input', {type: 'submit', name: 'type', value:'publish'}, 'Publish')
+// TODO: lookup mentions before publishing.
+    h('input', {type: 'submit', name: 'type', value:'publish', disabled: true}, 'Publish'),
   )
+}
+
+function Publish (id, content, name) {
+  name = name || 'Preview'
+  return h('form', {name: 'publish', method: 'POST'},
+    //selected id to post from. this should
+    //be a dropdown, that only defaults to context.id
+    h('input', {
+      name: 'id', value: id, type: 'hidden'
+    }),
+    //root + branch. not shown in interface.
+    u.createHiddenInputs(content, 'content'),
+    h('button', {type: 'submit', name: 'type', value:'preview'}, name),
+  )
+
 }
 
 module.exports = function (opts) {
@@ -118,7 +129,7 @@ module.exports = function (opts) {
       if(err) return cb(err)
       var data = {key: opts.id, value: msg, timestamp: msg.timestamp || Date.now() }
       if(data.value.content.root)
-        api.message(opts)(cb) //just show one message
+        api('message', data)(cb) //just show one message
       else
         getThread(sbot, opts.id, function (err, ary) {
           ary.unshift(data)
@@ -130,7 +141,10 @@ module.exports = function (opts) {
           sort(ary)
           var recipients = ' '
           if(ary[0].value.content.recps)
-              recipients = ['div.Recipients', 'in this thread:', ary[0].value.content.recps.map(api.avatar)]
+              recipients = ['div.Recipients', 'in this thread:',
+                ary[0].value.content.recps.map(function (e) {
+                  return api('avatar', e)
+                })]
           cb(null,
             h('div.thread',
               u.cacheTag(toUrl('thread', opts), data.key, since),
@@ -139,21 +153,28 @@ module.exports = function (opts) {
               h('form', {name: 'publish', method: 'POST'},
                 ary.map(function (data) {
                   return h('div',
-                    render(sbot, api, data, since),
+                    api('message', data),
                     function (cb) {
                       backlinks(sbot, data.key, function (err, likes, backlinks) {
                         if(err) return cb(err)
                         cb(null, ['div.MessageExtra',
-                          ['button', 'yup', likes.length ? '('+likes.length+')' : ''],
+                          Publish(context.id, {
+                              type: 'vote',
+                              vote: {link:data.key, value: 1, expression: 'Yup'},
+                              channel: data.value.content.channel
+                            },
+                            'Yup' + (likes.length ? '('+likes.length+')' : '')
+                          ),
+                          //['button', 'yup', likes.length ? '('+likes.length+')' : ''],
                           (backlinks.length ?
                           ['ul.MessageBacklinks',
                             backlinks.map(function (e) {
                               return ['li',
-                                api.avatar({id:e.value.author}),
+                                api('avatar', {id:e.value.author}),
                                 ' ',
-                                api.messageLink(e),
+                                api('messageLink', e),
                                 ' ',
-                                e.value.content.channel && api.channelLink(e.value.content.channel)
+                                e.value.content.channel && api('channelLink', e.value.content.channel)
                               ]
                             })
                           ] : '')

@@ -11,6 +11,7 @@ toUrl = u.toUrl
 var render = require('./message').render
 
 module.exports = function (opts) {
+  var self = this
   var sbot = this.sbot, api = this.api
   opts.reverse = opts.reverse !== false
   var min = !isNaN(+opts.lt) ? +opts.lt : Date.now()
@@ -38,12 +39,11 @@ module.exports = function (opts) {
       }),
       pull.map(function (data) {
         min = Math.min(data.value.timestamp, min)
-        return render(sbot, api, data)
+        return api('message', data)
       }),
       function (read) {
         var ended
         function last () {
-          console.log("LAST", min)
           return [
             'a', {
               href: toUrl(type, Object.assign({}, opts, {lt: min}))
@@ -67,5 +67,4 @@ module.exports = function (opts) {
     )
   )
 }
-
 

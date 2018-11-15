@@ -8,21 +8,29 @@ module.exports = function (opts) {
     opts = {id: opts}
   if(ref.isFeed(opts.link))
     opts = {id: opts.link}
+  var _image = opts.image !== false //defaults to true
+  var _name = opts.name === true //defaults to false
+
   return function (cb) {
     if(!ref.isFeed(opts.id))
       return cb(new Error('expected valid feed id as id'))
     sbot.names.getImageFor(opts.id, function (err, blobId) {
       sbot.names.getSignifier(opts.id, function (err, name) {
         cb(null,
-          h('a', {href: toUrl('public', {author:opts.id})},
-            h('img', {className:'avatar', 
+          h('a.Avatar', {href: toUrl('public', {author:opts.id})},
+            _image ? h('img', {className:'avatar', 
               src: 'http://localhost:8989/blobs/get/'+blobId,
-              title: name+'\n'+opts.id
-            })
+              //getSignifier returns id as name if there isn't a name available.
+              title: name !== opts.id ? name+'\n'+opts.id : opts.id
+            }) : '',
+            h('br'),
+            _name ? name : ''
           )
         )
       })
     })
   }
 }
+
+
 

@@ -7,8 +7,8 @@ module.exports = function (opts) {
   return pull(
     self.sbot.search.query(opts),
     pull.map(function (data) {
-      console.log(data)
-      return render(self.sbot, self.api, data)
+      return api('message', data)
     })
   )
 }
+

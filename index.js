@@ -52,13 +52,13 @@ function layout(content) {
           h('h2', {style: 'display:flex;flex-direction:row'}, 'yap', h('img', {src: '/favicon.ico'})),
           ['a', {href: '/public'}, 'Public'],
           ['a', {href: '/private'}, 'Private'],
-          ['a', {href: '/gatherings'}, 'Gatherings'],
+//          ['a', {href: '/gatherings'}, 'Gatherings'],
           ['form', {method: 'GET', action: '/search'},
             ['input', {type: 'text', name: 'query', placeholder: 'Search'}],
             ['input', {type: 'hidden', name: 'limit', value: 20}],
             ['button', {}, 'go']
           ],
-          this.api.identitySelect.call(this, this.context)
+          this.api('identitySelect', this.context)
         ),
       h('div.main', content)
     )
@@ -72,23 +72,25 @@ require('ssb-client')(function (err, sbot) {
 
   var watcher = CacheWatcher(sbot)
 
-  var apis = {}
-  nested.map(_apis, function (fn, path) {
-    function method (opts) {
-      return fn.call(Object.assign({}, this, {sbot: sbot, api: apis}), opts)
-    }
-    nested.set(apis, path, method)
-  })
+  var apis = _apis
 
   function render (embed, req, res, next) {
     var url = URL.parse(req.url)
     var path = url.pathname.split('/').slice(1)
     var opts = QS.parse(url.query)
     var context = req.context
-    var fn = nested.get(apis, path)
-    if(!fn) return next()
-    var self = {context: context, api: apis, sbot: sbot, since: watcher.since()}
-    var A = fn.call(self, opts)
+    function callApi (path, opts) {
+      console.log('CALL', path, opts)
+      try { return nested.get(apis, path).call(self, opts) }
+      catch (err) { next(err) }
+    }
+    var self = {
+      context: context,
+      api: callApi,
+      sbot: sbot,
+      since: watcher.since()
+    }
+    var A = callApi(path, opts)
     toHTML(!embed ? layout.call(self, A) : A) (function (err, result) {
       if(err) next(err)
       else res.end((embed ? '' : doctype)+result.outerHTML)
@@ -142,10 +144,22 @@ require('ssb-client')(function (err, sbot) {
     function (req, res, next) {
       if(req.method == 'GET') return next()
       var id = req.context.id || sbot.id
-      var self = {context: req.context, sbot: sbot, api: apis}
       var opts = QS.parse(req.body)
+      var self = {
+        context: req.context,
+        sbot: sbot, api: apis,
+        since: watcher.since()
+      }
+      function callApi (path, opts) {
+        try {
+          var fn = nested.get(apis, path)
+          return fn.call(self, opts)
+        } catch(err) {
+          next(err)
+        }
+      }
       if(opts.type === 'preview') {
-        toHTML(layout.call(self, apis.preview({
+        toHTML(layout.call(self, callApi(['preview'],{
           key: '%dummy',
           value: {
             author: opts.id,
@@ -184,6 +198,7 @@ require('ssb-client')(function (err, sbot) {
       req.url = req.url.substring('/partial'.length)
       render(true, req, res, next)
     },
+    //static files
     function (req, res, next) {
       if(/\/static\/[\w\d-_]+\.\w+/.test(req.url))
         fs.createReadStream(path.join(__dirname, req.url))
@@ -196,5 +211,4 @@ require('ssb-client')(function (err, sbot) {
     }
   )).listen(8005)
 })
-
 
