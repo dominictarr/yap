@@ -5,6 +5,9 @@ var cpara = require('cont').para
 var pull = require('pull-stream')
 var paramap = require('pull-paramap')
 var nested = require('libnested')
+var renderer = require('ssb-markdown')
+var ref = require('ssb-ref')
+var htmlEscape = require('html-escape')
 function isFunction (f) {
   return 'function' === typeof f
 }
@@ -103,8 +106,95 @@ var cacheId = exports.cacheId = function (id) {
   return '_'+Buffer.from(id.substring(1, 12), 'base64').toString('hex')
 }
 exports.cacheTag = function (url, id, time) {
-  return ['link', {
-    rel: 'partial-refresh', href: url, id: cacheId(id), 'data-cache': ''+time
+  if(time)
+    return ['link', {
+      rel: 'partial-refresh', href: url, id: cacheId(id), 'data-cache': ''+time
+    }]
+}
+
+
+function renderEmoji (emoji, url) {
+  if (!url) return ':' + emoji + ':'
+  return `
+    <img
+      src="${htmlEscape(url)}"
+      alt=":${htmlEscape(emoji)}:"
+      title=":${htmlEscape(emoji)}:"
+      class="emoji"
+    >
+  `
+}
+
+//copied from patchwork
+exports.markdown = function markdown (content) {
+  console.log("MARKDOWN", content)
+  if (typeof content === 'string') { content = { text: content } }
+  var mentions = {}
+  var typeLookup = {}
+  var emojiMentions = {}
+  if (Array.isArray(content.mentions)) {
+    content.mentions.forEach(function (link) {
+      if (link && link.link && link.type) {
+        typeLookup[link.link] = link.type
+      }
+      if (link && link.name && link.link) {
+        if (link.emoji) {
+          // handle custom emoji
+          emojiMentions[link.name] = link.link
+        } else {
+          // handle old-style patchwork v2 mentions (deprecated)
+          mentions['@' + link.name] = link.link
+        }
+      }
+    })
+  }
+
+  var blobsUrl = 'http://localhost:8989/blobs/get/'
+  var emojiUrl = 'http://localhost:8989/img/emoji/'
+
+  return ['div.Markdown', {
+    innerHTML: renderer.block(content.text, {
+      emoji: (emoji) => {
+        var url = emojiMentions[emoji]
+          ? blobsUrl + emojiMentions[emoji]
+          : emojiUrl + emoji + '.png'
+        console.log("EMOJI?", emoji, url)
+        return renderEmoji(emoji, url)
+      },
+      toUrl: (id) => {
+        var link = ref.parseLink(id)
+        if (link && ref.isBlob(link.link)) {
+          var url = blobsUrl+link.link
+          var query = {}
+          if (link.query && link.query.unbox) query['unbox'] = link.query.unbox
+          if (typeLookup[link.link]) query['contentType'] = typeLookup[link.link]
+          return url + '?' + QS.stringify(query)
+        } else if (link || id.startsWith('#') || id.startsWith('?')) {
+          return id
+        } else if (mentions[id]) {
+          // handle old-style patchwork v2 mentions (deprecated)
+          return mentions[id]
+        }
+        return false
+      },
+      imageLink: (id) => id
+    })
   }]
 }
 
+exports.createRenderer = function (render) {
+  return function (opts) {
+    var self = this
+    var sbot = this.sbot
+    if(opts.id && ref.isMsgLink(opts.id))
+      return function (cb) {
+        sbot.get(opts, function (err, msg) {
+          if(err) return cb(err)
+          var data = {key: opts.id, value: msg, timestamp: msg.timestamp || Date.now() }
+          cb(null, render.call(self, data))
+        })
+      }
+    else if(opts.key && opts.value)
+      return render.call(self, opts)
+  }
+}
