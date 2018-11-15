@@ -1,7 +1,6 @@
 var u = require('../../util')
 module.exports = u.createRenderer(function (data) {
   var self = this
-  console.log('yup', JSON.stringify(data))
   return ['div.Message',
     //currently, a vote message has no need for a cache tag.
     //unless we decide to show other peers that have liked this.
@@ -12,7 +11,4 @@ module.exports = u.createRenderer(function (data) {
     ]
   ]
 })
-
-
-
 
