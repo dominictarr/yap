@@ -2,13 +2,14 @@
   background: rgba(255, 250, 250, 0.8)
 }
 
-
-
 img { max-width: 100%; }
 img.avatar { width: 50px; }
+/* avatar, when shown in recipient lists, etc */
 li img.avatar { width: 30px; }
 img.emoji { width: 16px; }
+
 div.main {
+  /*padding at the top, to allow space for nav bar */
   padding-top: 100px;
   max-width: 800px; margin-left: auto; margin-right: auto;
 }
@@ -20,6 +21,24 @@ div.Message {
 div.MessageMeta {
   display: flex;
   flex-direction: column;
+  align-items: end;
+  margin-right: 15px;
+  width: 75px;
+}
+.Avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+}
+.msgId {
+  overflow: hidden;
+  font-family: monospace;
+  color: gray;
+  width: 75px;
+  word-break: keep-all;
+}
+.Recipients {
+  display: flex; flex-direction: row;
 }
 
 #AppHeader {
@@ -54,7 +73,8 @@ div.MessageMeta {
   padding: 0px;
   margin: 0px;
   position: absolute;
-  /*left: -9999px;*/
+  /*left: -9999px;
+  apparently this is better for screen readers, but I couldn't get it to work nicely*/
   display: none;
   list-style: none;
 }
@@ -63,10 +83,10 @@ div.MessageMeta {
 }
 
 ._menu:hover ul {
-/*  left: 0;*/
   display: block;
 }
 
-
-
-
+textarea {
+  width: 100%;
+  height: 100px;
+}
