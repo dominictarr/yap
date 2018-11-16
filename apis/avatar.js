@@ -19,7 +19,7 @@ module.exports = function (opts) {
         cb(null,
           h('a.Avatar', {href: toUrl('public', {author:opts.id})},
             _image ? h('img', {className:'avatar', 
-              src: 'http://localhost:8989/blobs/get/'+blobId,
+              src: '/blobs/get/'+blobId,
               //getSignifier returns id as name if there isn't a name available.
               title: name !== opts.id ? name+'\n'+opts.id : opts.id
             }) : '',

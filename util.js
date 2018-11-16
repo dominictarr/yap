@@ -148,13 +148,13 @@ exports.markdown = function markdown (content) {
     })
   }
 
-  var blobsUrl = 'http://localhost:8989/blobs/get/'
-  var emojiUrl = 'http://localhost:8989/img/emoji/'
+  var blobsUrl = '/blobs/get/'
+  var emojiUrl = '/img/emoji/'
 
   function id2Url (id) {
     return (
         ref.isMsg(id) ? '/thread?id='+encodeURIComponent(id)
-      : ref.isBlobLink(id) ? blobsUrl+id
+      : ref.isBlobLink(id) ? blobsUrl+encodeURIComponent(id)
       : ref.isFeed(id) ? '/public?author='+encodeURIComponent(id)
       : id
     )
@@ -184,7 +184,9 @@ exports.markdown = function markdown (content) {
         }
         return false
       },
-      imageLink: (id) => id
+      imageLink: function (id) {
+        return id2Url(id)
+      }
     })
   }]
 }
@@ -205,7 +207,5 @@ exports.createRenderer = function (render) {
       return render.call(self, opts)
   }
 }
-
-
 
 

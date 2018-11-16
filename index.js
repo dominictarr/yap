@@ -69,7 +69,6 @@ var favicon = fs.readFileSync(path.join(__dirname, 'static', 'favicon.ico'))
 
 require('ssb-client')(function (err, sbot) {
   if(err) throw err
-
   var watcher = CacheWatcher(sbot)
 
   var apis = _apis
@@ -81,7 +80,7 @@ require('ssb-client')(function (err, sbot) {
     var context = req.context
     function callApi (path, opts) {
       var fn = nested.get(apis, path)
-      if(!fn) return next(new Error('no method at path:'+JSON.stringify(path)))
+      if(!fn) return next() //new Error('no method at path:'+JSON.stringify(path)))
       try { return fn.call(self, opts) }
       catch (err) { next(err) }
     }
@@ -92,13 +91,16 @@ require('ssb-client')(function (err, sbot) {
       since: watcher.since()
     }
     var A = callApi(path, opts)
-    toHTML(!embed ? layout.call(self, A) : A) (function (err, result) {
-      if(err) next(err)
-      else res.end((embed ? '' : doctype)+result.outerHTML)
-    })
+    if(A)
+      toHTML(!embed ? layout.call(self, A) : A) (function (err, result) {
+        if(err) next(err)
+        else res.end((embed ? '' : doctype)+result.outerHTML)
+      })
   }
 
   require('http').createServer(Stack(
+    //everything breaks if blobs isn't first, but not sure why?
+    require('ssb-ws/blobs')(sbot, {prefix: '/blobs'}),
     /*
       some settings we want to store in a cookie:
         * current identity
@@ -192,6 +194,8 @@ require('ssb-client')(function (err, sbot) {
         res.end()
       })
     },
+    //HANDLE BLOBS
+    require('emoji-server')('/img/emoji'),
     function (req, res, next) {
       if(!/\/partial\//.test(req.url)) return next()
       req.url = req.url.substring('/partial'.length)
@@ -207,9 +211,11 @@ require('ssb-client')(function (err, sbot) {
     },
     function (req, res, next) {
       render(false, req, res, next)
-    }
+    },
   )).listen(8005)
 })
+
+
 
 
 
