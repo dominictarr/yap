@@ -127,7 +127,6 @@ function renderEmoji (emoji, url) {
 
 //copied from patchwork
 exports.markdown = function markdown (content) {
-  console.log("MARKDOWN", content)
   if (typeof content === 'string') { content = { text: content } }
   var mentions = {}
   var typeLookup = {}
@@ -152,13 +151,21 @@ exports.markdown = function markdown (content) {
   var blobsUrl = 'http://localhost:8989/blobs/get/'
   var emojiUrl = 'http://localhost:8989/img/emoji/'
 
+  function id2Url (id) {
+    return (
+        ref.isMsg(id) ? '/thread?id='+encodeURIComponent(id)
+      : ref.isBlobLink(id) ? blobsUrl+id
+      : ref.isFeed(id) ? '/public?author='+encodeURIComponent(id)
+      : id
+    )
+  }
+
   return ['div.Markdown', {
     innerHTML: renderer.block(content.text, {
       emoji: (emoji) => {
         var url = emojiMentions[emoji]
           ? blobsUrl + emojiMentions[emoji]
           : emojiUrl + emoji + '.png'
-        console.log("EMOJI?", emoji, url)
         return renderEmoji(emoji, url)
       },
       toUrl: (id) => {
@@ -170,10 +177,10 @@ exports.markdown = function markdown (content) {
           if (typeLookup[link.link]) query['contentType'] = typeLookup[link.link]
           return url + '?' + QS.stringify(query)
         } else if (link || id.startsWith('#') || id.startsWith('?')) {
-          return id
+          return id2Url(id)
         } else if (mentions[id]) {
           // handle old-style patchwork v2 mentions (deprecated)
-          return mentions[id]
+          return id2Url(mentions[id])
         }
         return false
       },
@@ -188,7 +195,7 @@ exports.createRenderer = function (render) {
     var sbot = this.sbot
     if(opts.id && ref.isMsgLink(opts.id))
       return function (cb) {
-        sbot.get(opts, function (err, msg) {
+        sbot.get({id:opts.id, private: true}, function (err, msg) {
           if(err) return cb(err)
           var data = {key: opts.id, value: msg, timestamp: msg.timestamp || Date.now() }
           cb(null, render.call(self, data))
@@ -198,3 +205,7 @@ exports.createRenderer = function (render) {
       return render.call(self, opts)
   }
 }
+
+
+
+
