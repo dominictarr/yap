@@ -2,7 +2,7 @@
   background: rgba(255, 250, 250, 0.8)
 }
 
-img { max-width: 100%; }
+video, img { max-width: 100%; }
 img.avatar { width: 50px; }
 /* avatar, when shown in recipient lists, etc */
 li img.avatar { width: 30px; }
@@ -116,6 +116,8 @@ textarea {
   overflow: hidden;
 
 }
+
+
 
 
 
