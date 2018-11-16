@@ -13,7 +13,9 @@ module.exports = {
   messageLink: require('./message-link'),
   channelLink: require('./channel-link'),
   raw: require('./raw'),
-  messages: require('./messages')
+  messages: require('./messages'),
+  mentions: require('./mentions'),
+  suggestedRecipients: require('./suggested-recipients')
 }
 
 

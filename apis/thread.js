@@ -103,16 +103,15 @@ function Compose (id, meta) {
   )
 }
 
-function Publish (id, content, name) {
+function Publish (opts, name) {
   name = name || 'Preview'
   return h('form', {name: 'publish', method: 'POST'},
     //selected id to post from. this should
-    //be a dropdown, that only defaults to context.id
-    h('input', {
-      name: 'id', value: id, type: 'hidden'
-    }),
-    //root + branch. not shown in interface.
-    u.createHiddenInputs(content, 'content'),
+    //be a dropdown, that defaults to context.id
+    //private threads should only allow changing
+    //id to a recipient, likes, follows etc should
+    //allow changing to any id you have.
+    u.createHiddenInputs(opts),
     h('button', {type: 'submit', name: 'type', value:'preview'}, name),
   )
 
@@ -129,7 +128,7 @@ module.exports = function (opts) {
       if(err) return cb(err)
       var data = {key: opts.id, value: msg, timestamp: msg.timestamp || Date.now() }
       if(data.value.content.root)
-        api('message', data)(cb) //just show one message
+        cb(null, api('message', data)) //just show one message
       else
         getThread(sbot, opts.id, function (err, ary) {
           ary.unshift(data)
@@ -158,10 +157,17 @@ module.exports = function (opts) {
                       backlinks(sbot, data.key, function (err, likes, backlinks) {
                         if(err) return cb(err)
                         cb(null, ['div.MessageExtra',
-                          Publish(context.id, {
-                              type: 'vote',
-                              vote: {link:data.key, value: 1, expression: 'Yup'},
-                              channel: data.value.content.channel
+                          Publish({
+                              id: context.id,
+                              suggestedRecps: data.value.author,
+                              content: {
+                                type: 'vote',
+                                vote: {
+                                  link:data.key, value: 1,
+                                  expression: 'Yup'
+                                },
+                                channel: data.value.content.channel
+                              }
                             },
                             'Yup' + (likes.length ? '('+likes.length+')' : '')
                           ),
