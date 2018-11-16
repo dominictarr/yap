@@ -80,7 +80,6 @@ require('ssb-client')(function (err, sbot) {
     var opts = QS.parse(url.query)
     var context = req.context
     function callApi (path, opts) {
-      console.log('CALL', path, opts)
       var fn = nested.get(apis, path)
       if(!fn) return next(new Error('no method at path:'+JSON.stringify(path)))
       try { return fn.call(self, opts) }
@@ -155,26 +154,24 @@ require('ssb-client')(function (err, sbot) {
       function callApi (path, opts) {
         try {
           var fn = nested.get(apis, path)
+          if(!fn) return next()
           return fn.call(self, opts)
         } catch(err) {
           next(err)
         }
       }
       if(opts.type === 'preview') {
-        toHTML(layout.call(self, callApi(['preview'],{
-          key: '%dummy',
-          value: {
-            author: opts.id,
-            content: opts.content
-          },
-          timestamp: Date.now()
-        }))) (function (err, result) {
+        //  TODO: pass opts.id in, and wether this message
+        //  preview should allow recipient selection, or changing id.
+        //  api.preview can set the shape of the message if it likes.
+        toHTML(layout.call(self, callApi(['preview'], opts))) (function (err, result) {
           if(err) next(err)
           else res.end('<!DOCTYPE html>'+result.outerHTML)
         })
         return
       }
       actions[opts.type].call({sbot: sbot, context: req.context}, opts, function (err, _opts, context) {
+        if(err) return next(err)
         if(context) {
           req.context = context
           res.setHeader('set-cookie', QS.stringify(context))
@@ -213,4 +210,8 @@ require('ssb-client')(function (err, sbot) {
     }
   )).listen(8005)
 })
+
+
+
+
 
