@@ -14,7 +14,7 @@ var mentions = require('ssb-mentions')
 */
 
 function simpleAt (text) {
-  var rx = /(?:^|\s)(@[\w\-_\d]+)/g
+  var rx = /(?:^|\s)(@[\w\-_\d\!]+)/g
   var a = []
   var match = rx.exec(text)
   while(match) {
