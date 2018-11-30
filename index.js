@@ -94,11 +94,25 @@ require('ssb-client')(function (err, sbot) {
     if(A)
       toHTML(!embed ? layout.call(self, A) : A) (function (err, result) {
         if(err) next(err)
-        else res.end((embed ? '' : doctype)+result.outerHTML)
+        else {
+          if(!res._headerSent) {
+            try {
+              res.setHeader('content-type', 'text/html')
+            } catch (_) {
+              //sometimes, this gives an error,
+              //but _headerSent isn't true?
+            }
+          }
+          res.end((embed ? '' : doctype)+result.outerHTML)
+        }
       })
   }
 
   require('http').createServer(Stack(
+    function (req, res, next) {
+      console.log(req.method, req.url)
+      next()
+    },
     //everything breaks if blobs isn't first, but not sure why?
     require('ssb-ws/blobs')(sbot, {prefix: '/blobs'}),
     /*
@@ -214,10 +228,6 @@ require('ssb-client')(function (err, sbot) {
     },
   )).listen(8005)
 })
-
-
-
-
 
 
 
