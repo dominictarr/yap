@@ -3,6 +3,7 @@ var morph = require('morphdom')
 var cached = {}
 var start = Date.now(), _focus = Date.now()
 function scan () {
+  cached = {}
   ;[].forEach.call(document.querySelectorAll('link[data-cache]'), function (el) {
     cached[el.id] = +el.dataset.cache
   })
@@ -21,8 +22,11 @@ window.onfocus = function () {
 function check () {
   var xhr = new XMLHttpRequest()
   xhr.onload = function () {
-    if(xhr.responseText)
-      var updates = JSON.parse(xhr.responseText)
+    if(!xhr.responseText) return console.error('empty updates')
+
+    var updates = JSON.parse(xhr.responseText)
+    console.log(updates)
+
     //mark any nodes that look like they need updating.
     var elements = [], parents = []
     for(var k in updates)
@@ -40,13 +44,12 @@ function check () {
         el.parentNode.classList.add('invalid')
         update(el)
       })
-    //rebuild list of what might need to update
-    scan()
   }
   //if the server fails, we'll just try again later.
   xhr.onerror = function (ev) {
     console.error('warning:', ev)
   }
+  console.log('POST', '/check-cache')
   xhr.open('POST', '/check-cache')
   xhr.setRequestHeader('Content-Type', 'application/json')
   xhr.send(JSON.stringify(cached))
@@ -55,12 +58,21 @@ function check () {
 function update (el) {
   var href = el.href
   var xhr = new XMLHttpRequest()
+  xhr.overrideMimeType("application/json");  
   xhr.onload = function () {
     //update html
-    morph(el.parentNode, xhr.responseText)
+    console.log('update', el.href, xhr.statusCode)
+    if(xhr.statusCode == 200) {
+      morph(el.parentNode, xhr.responseText)
+
+      //rebuild list of what might need to update
+      scan()
+    }
+
   }
   href = href.substring(location.origin.length)
   xhr.open('get', '/partial'+href)
   xhr.send()
 }
+
 
