@@ -18,8 +18,10 @@ implement these all as independent routes
 * message - done
 * thread - done
 * public - done
-* private
+* private - done
 * channel - done
+* friends
+* names/images
 * gathering
 * scry (meeting)
 * chess
@@ -32,15 +34,18 @@ implement these all as independent routes
   * issue
   * pr
 
-### forms
+### forms / actions
 
-* change current identity - partly
-* change language
-* like button
-* post reply
-* recipients (include on every type, so you have instant privacy)
+* post reply - done
+* recipients (include on every type, so you have instant privacy) - done
+* change current identity - done, on tab and on post
+* like "yup" button - done
+* translations
 * attach file
+* set name/image on avatar
 
-preview post
+
+
+
 
 
