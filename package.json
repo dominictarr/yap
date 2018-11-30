@@ -18,6 +18,7 @@
     "morphdom": "^2.3.3",
     "nice-ago": "^1.0.1",
     "patchwork-translations": "^1.5.4",
+    "pull-append": "^1.0.0",
     "pull-paramap": "^1.2.2",
     "pull-stream": "^3.6.9",
     "qs": "^6.5.2",
