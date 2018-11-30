@@ -69,12 +69,17 @@ var k = 0
 exports.toHTML = function toHTML (hs) {
   return function (cb) {
     if(!isFunction(cb)) throw new Error('cb must be a function, was:'+cb)
-
+    var called = false
     var C = (
       isFunction(hs) ? toCont(hs)
     : isArray(hs) ? cpara(hs.map(toHTML))
     : function (cb) {
-        cb(null, hs)
+        if(!called) {
+          called = true
+          cb(null, hs)
+        }
+        else
+          throw new Error('called twice')
       }
     )
 
@@ -156,6 +161,7 @@ exports.markdown = function markdown (content) {
         ref.isMsg(id) ? '/thread?id='+encodeURIComponent(id)
       : ref.isBlobLink(id) ? blobsUrl+encodeURIComponent(id)
       : ref.isFeed(id) ? '/public?author='+encodeURIComponent(id)
+      : id[0] == '#' ? '/public?channel='+id.substring(1)
       : id
     )
   }
