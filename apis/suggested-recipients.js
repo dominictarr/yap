@@ -15,8 +15,8 @@ module.exports = function (opts, cb) {
 //  })
   return ['select', {name: '[content][recps]'},
     //default option is the same recipients.
-    ['option', {selected: true}, content.recps ? 'Thread Recipients' : 'Public'],
-    ['option', {name: '[content][recps]', value: this.id}, 'note to self'],
+    ['option', {selected: true, value: ''}, content.recps ? 'Thread Recipients' : 'Public'],
+    ['option', {name: '[content][recps]', value: opts.id}, 'note to self'],
     ref.isFeed(suggested) && [
       'option', {
         name: '[content][recps]',

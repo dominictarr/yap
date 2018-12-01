@@ -26,8 +26,13 @@ var actions = {
     cb(null, opts)
   },
   publish: function (opts, cb) {
-    if(opts.content.recps)
+    if(opts.content.recps === '')
+      delete opts.content.recps
+    else if(opts.content.recps) {
       opts.private = true
+      opts.content.recps = opts.content.recps.split(',')
+    }
+
     this.sbot.identities.publishAs(opts, function (err, msg) {
       if(err) cb(err)
       else cb()
@@ -228,6 +233,8 @@ require('ssb-client')(function (err, sbot) {
     },
   )).listen(8005)
 })
+
+
 
 
 
