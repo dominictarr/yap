@@ -129,6 +129,8 @@ module.exports = function (opts) {
       var data = {key: opts.id, value: msg, timestamp: msg.timestamp || Date.now() }
       if(data.value.content.root)
         cb(null, api('message', data)) //just show one message
+      else if(data.value.content.type != 'post')
+        cb(null, api('message', data)) //just show one message
       else
         getThread(sbot, opts.id, function (err, ary) {
           ary.unshift(data)
@@ -147,7 +149,7 @@ module.exports = function (opts) {
           cb(null,
             h('div.thread',
               u.cacheTag(toUrl('thread', opts), data.key, since),
-              h('title', msum.title(ary[0].value.content.text)),
+              ary[0].value.content.text && h('title', msum.title(ary[0].value.content.text)),
               recipients,
               h('form', {name: 'publish', method: 'POST'},
                 ary.map(function (data) {
@@ -202,4 +204,6 @@ module.exports = function (opts) {
     })
   }
 }
+
+
 

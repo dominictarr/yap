@@ -1,5 +1,6 @@
 var pull = require('pull-stream')
 var ref = require('ssb-ref')
+var Append = require('pull-append')
 
 var sort = require('ssb-sort')
 
@@ -18,7 +19,6 @@ module.exports = function (opts) {
 
   var type = (opts.private ? 'private' : 'public')
   var Type = (opts.private ? 'Private' : 'Public')
-
 
   return h('div.' + Type,
     h('title', Type),
@@ -41,29 +41,14 @@ module.exports = function (opts) {
         min = Math.min(data.value.timestamp, min)
         return api('message', data)
       }),
-      function (read) {
-        var ended
-        function last () {
-          return [
-            'a', {
-              href: toUrl(type, Object.assign({}, opts, {lt: min}))
-            },
-            'Load More'
-          ]
-        }
-        return function (abort, cb) {
-          if(ended) cb(ended)
-          else
-            read(null, function (end, data) {
-              if(!end) cb(null, data)
-              else if(end === true) {
-                ended = true
-                cb(null, last())
-              }
-              else cb(end)
-            })
-        }
-      }
+      Append(function last () {
+        return [
+          'a', {
+            href: toUrl(type, Object.assign({}, opts, {lt: min}))
+          },
+          'Load More'
+        ]
+      })
     )
   )
 }

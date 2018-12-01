@@ -15,7 +15,8 @@ module.exports = {
   raw: require('./raw'),
   messages: require('./messages'),
   mentions: require('./mentions'),
-  suggestedRecipients: require('./suggested-recipients')
+  suggestedRecipients: require('./suggested-recipients'),
+  inbox: require('./inbox')
 }
 
 
