@@ -98,10 +98,13 @@ progress {
   list-style: none;
 }
 ._menu li {
+  display: block;
   position: relative;
 }
 
 ._menu:hover ul {
+  /* in chrome, -4px margin-top is needed. I don't understand why */
+  margin-top: -4px;
   display: block;
 }
 
@@ -135,5 +138,4 @@ textarea {
   overflow: hidden;
 
 }
-
 
