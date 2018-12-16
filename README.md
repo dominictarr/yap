@@ -60,8 +60,12 @@ implement these all as independent routes
 * public - done
 * private - done
 * channel - done
-* friends
-* names/images
+* friends - done (note: ssb-names is perf bottleneck!)
+* set name
+* set images
+* upload/link blob
+* start new thread
+* follow / unfollow / block / unblock
 * gathering
 * scry (meeting)
 * chess
@@ -84,6 +88,7 @@ implement these all as independent routes
 * translations
 * attach file
 * set name/image on avatar
+
 
 
 
