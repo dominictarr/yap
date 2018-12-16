@@ -16,7 +16,8 @@ module.exports = {
   messages: require('./messages'),
   mentions: require('./mentions'),
   suggestedRecipients: require('./suggested-recipients'),
-  inbox: require('./inbox')
+  inbox: require('./inbox'),
+  progress: require('./progress')
 }
 
 
