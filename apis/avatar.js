@@ -17,8 +17,9 @@ module.exports = function (opts) {
     sbot.names.getImageFor(opts.id, function (err, blobId) {
       sbot.names.getSignifier(opts.id, function (err, name) {
         cb(null,
-          h('a.Avatar', {href: toUrl('public', {author:opts.id})},
-            _image ? h('img', {className:'avatar', 
+          h('a.Avatar', {href: opts.href || toUrl('public', {author:opts.id})},
+            _image ? h('img', {
+              className:'avatar',
               src: '/blobs/get/'+blobId,
               //getSignifier returns id as name if there isn't a name available.
               title: name !== opts.id ? name+'\n'+opts.id : opts.id
