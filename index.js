@@ -28,10 +28,12 @@ var actions = {
   publish: function (opts, cb) {
     if(opts.content.recps === '')
       delete opts.content.recps
-    else if(opts.content.recps) {
-      opts.private = true
+    else if('string' === typeof opts.content.recps) {
       opts.content.recps = opts.content.recps.split(',')
     }
+
+    if(Array.isArray(opts.content.recps))
+      opts.private = true
 
     this.sbot.identities.publishAs(opts, function (err, msg) {
       if(err) cb(err)
@@ -54,16 +56,19 @@ function layout(content) {
       ),
       h('body',
         h('div#AppHeader',
-          h('h2', {style: 'display:flex;flex-direction:row'}, 'yap', h('img', {src: '/favicon.ico'})),
-          ['a', {href: '/public'}, 'Public'],
-          ['a', {href: '/private'}, 'Private'],
-//          ['a', {href: '/gatherings'}, 'Gatherings'],
-          ['form', {method: 'GET', action: '/search'},
-            ['input', {type: 'text', name: 'query', placeholder: 'Search'}],
-            ['input', {type: 'hidden', name: 'limit', value: 20}],
-            ['button', {}, 'go']
-          ],
-          this.api('identitySelect', this.context)
+          h('nav',
+            h('div', {style: 'display:flex;flex-direction:row'}, h('h2', 'yap'), h('img', {src: '/favicon.ico'})),
+            ['a', {href: '/public'}, 'Public'],
+            ['a', {href: '/private'}, 'Private'],
+  //          ['a', {href: '/gatherings'}, 'Gatherings'],
+            ['form', {method: 'GET', action: '/search'},
+              ['input', {type: 'text', name: 'query', placeholder: 'Search'}],
+              ['input', {type: 'hidden', name: 'limit', value: 20}],
+              ['button', {}, 'go']
+            ],
+            this.api('identitySelect', this.context)
+          ),
+          this.api('progress', {})
         ),
       h('div.main', content)
     )
@@ -71,6 +76,24 @@ function layout(content) {
 }
 
 var favicon = fs.readFileSync(path.join(__dirname, 'static', 'favicon.ico'))
+
+//stack, but check if you called next twice!
+function _Stack() {
+  var args = [].slice.call(arguments)
+  return Stack.apply(this, args.map(function (fn) {
+    return function (req, res, next) {
+      var err = new Error('already called')
+      var called = false
+      function _next (err) {
+        if(called) throw called
+        called = new Error('called already')
+        return next(err)
+      }
+      fn(req, res, _next)
+
+    }
+  }))
+}
 
 require('ssb-client')(function (err, sbot) {
   if(err) throw err
@@ -113,7 +136,7 @@ require('ssb-client')(function (err, sbot) {
       })
   }
 
-  require('http').createServer(Stack(
+  require('http').createServer(_Stack(
     function (req, res, next) {
       console.log(req.method, req.url)
       next()
@@ -139,14 +162,15 @@ require('ssb-client')(function (err, sbot) {
       next()
     },
     function collectBody (req, res, next) {
-      if(req.method !== "POST") next()
-      pull(
-        toPull.source(req),
-        pull.collect(function (err, ary) {
-          req.body = Buffer.concat(ary).toString('utf8')
-          next()
-        })
-      )
+      if(req.method !== "POST") return next()
+      else
+        pull(
+          toPull.source(req),
+          pull.collect(function (err, ary) {
+            req.body = Buffer.concat(ary).toString('utf8')
+            next(err)
+          })
+        )
     },
     function CheckCache (req, res, next) {
       req.context = QS.parse(req.headers.cookie||'') || {id: sbot.id}
@@ -222,10 +246,10 @@ require('ssb-client')(function (err, sbot) {
     },
     //static files
     function (req, res, next) {
-      if(/\/static\/[\w\d-_]+\.\w+/.test(req.url))
-        fs.createReadStream(path.join(__dirname, req.url))
-        .pipe(res)
-      else
+      if(/\/static\/[\w\d-_]+\.\w+/.test(req.url)) {
+        console.log("STATIC", req.url)
+        fs.createReadStream(path.join(__dirname, req.url)).pipe(res)
+      } else
         next()
     },
     function (req, res, next) {
@@ -233,6 +257,7 @@ require('ssb-client')(function (err, sbot) {
     },
   )).listen(8005)
 })
+
 
 
 
