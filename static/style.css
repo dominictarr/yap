@@ -9,6 +9,7 @@ body {
 video, img { max-width: 100%; }
 img.avatar {
   width: 50px;
+  height: 50px;
   overflow: hidden; /*broken images, will show alt text*/
   background: lightgray;
   display: inline-block; /*also make broken images not go over*/
@@ -66,12 +67,14 @@ div.MessageMeta {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  height: 36px;
+  height: 50px;
 }
 
 progress {
   width: 100%;
   height: 3px;
+  position: fixed;
+  top: 50px;
 }
 
 .IdentitySelector button {
@@ -98,7 +101,7 @@ progress {
   list-style: none;
 }
 ._menu li {
-  display: block;
+//  display: block;
   position: relative;
 }
 
@@ -138,4 +141,5 @@ textarea {
   overflow: hidden;
 
 }
+
 
