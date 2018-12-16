@@ -35,7 +35,7 @@ div.MessageMeta {
   margin-right: 15px;
   width: 75px;
 }
-.Avatar {
+.MessageMeta>.Avatar {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
