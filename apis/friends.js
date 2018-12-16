@@ -1,4 +1,4 @@
-
+var toUrl = require('../util').toUrl
 
 module.exports = function (opts) {
   var sbot = this.sbot
@@ -20,14 +20,13 @@ module.exports = function (opts) {
             delete followers[k]
           }
         }
-        console.log('friends', friends)
         var limit = 25
         function group (label, list) {
           return [
             'div.'+label,
             ['h2', label],
           ].concat(list.slice(0, limit).map(function (e) {
-            return api(['avatar'], {id: e, image: true, name: false})
+            return api(['avatar'], {id: e, image: true, name: false, href: toUrl('friends', {id: e})})
           })).concat(
             //TODO make this a link to a page showing friends.
             list.length > limit ? '...and '+(list.length-limit)+' more' : ''
@@ -44,6 +43,7 @@ module.exports = function (opts) {
     })
   }
 }
+
 
 
 

@@ -58,7 +58,13 @@ module.exports = function (opts) {
 
           var nav = ['span',
             '<< ',
-            opts.author ? api(['avatar'], {id: opts.author, name: true, image: false}) : '',
+            opts.author ?
+              api(['avatar'], {
+                id: opts.author,
+                name: true,
+                image: false,
+                href: toUrl('friends', {id: opts.author})
+              }): '',
             ' ',
             ['a', {
                 href: toUrl(type, Object.assign({}, nav_opts, {
@@ -85,4 +91,6 @@ module.exports = function (opts) {
     }
   )
 }
+
+
 
