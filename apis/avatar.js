@@ -23,7 +23,7 @@ module.exports = function (opts) {
               //getSignifier returns id as name if there isn't a name available.
               title: name !== opts.id ? name+'\n'+opts.id : opts.id
             }) : '',
-            h('br'),
+            _image  && _name ? h('br') : '',
             _name ? name : ''
           )
         )
@@ -31,6 +31,8 @@ module.exports = function (opts) {
     })
   }
 }
+
+
 
 
 
