@@ -11,6 +11,7 @@ img.avatar {
   width: 50px;
   overflow: hidden; /*broken images, will show alt text*/
   background: lightgray;
+  display: inline-block; /*also make broken images not go over*/
 }
 /* avatar, when shown in recipient lists, etc */
 li img.avatar {
@@ -136,9 +137,3 @@ textarea {
 }
 
 
-
-
-/*
-some how this is being appended to itself?
-*************************************************
-*/
