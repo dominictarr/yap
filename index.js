@@ -60,13 +60,13 @@ function layout(content) {
             h('div', {style: 'display:flex;flex-direction:row'}, h('h2', 'yap'), h('img', {src: '/favicon.ico'})),
             ['a', {href: '/public'}, 'Public'],
             ['a', {href: '/private'}, 'Private'],
-  //          ['a', {href: '/gatherings'}, 'Gatherings'],
+//          ['a', {href: '/gatherings'}, 'Gatherings'],
             ['form', {method: 'GET', action: '/search'},
               ['input', {type: 'text', name: 'query', placeholder: 'Search'}],
               ['input', {type: 'hidden', name: 'limit', value: 20}],
               ['button', {}, 'go']
             ],
-            this.api('identitySelect', this.context)
+            this.api('identitySelect', {main: true})
           ),
           this.api('progress', {})
         ),
@@ -84,12 +84,12 @@ function _Stack() {
     return function (req, res, next) {
       var err = new Error('already called')
       var called = false
-      function _next (err) {
+      fn(req, res, function _next (err) {
+        if(err) console.error(err)
         if(called) throw called
         called = new Error('called already')
         return next(err)
-      }
-      fn(req, res, _next)
+      })
 
     }
   }))
@@ -108,6 +108,11 @@ require('ssb-client')(function (err, sbot) {
     var context = req.context
     function callApi (path, opts) {
       var fn = nested.get(apis, path)
+      if(!fn) return ['div.noRenderer',
+        ['label', 'error, no renderer at:', [''].concat(path).join('/')],
+        ['pre', JSON.stringify(opts, null, 2)],
+        ['pre', new Error().stack]
+      ]
       if(!fn) return next() //new Error('no method at path:'+JSON.stringify(path)))
       try { return fn.call(self, opts) }
       catch (err) { next(err) }
@@ -257,8 +262,6 @@ require('ssb-client')(function (err, sbot) {
     },
   )).listen(8005)
 })
-
-
 
 
 
