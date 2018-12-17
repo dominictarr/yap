@@ -86,6 +86,7 @@ function backlinks (sbot, id, cb) {
   so that kinda needs to be split between two fields.
 */
 
+/*
 function Compose (id, meta) {
   return h('form', {name: 'publish', method: 'POST'},
     //selected id to post from. this should
@@ -111,11 +112,12 @@ function Publish (opts, name) {
     //private threads should only allow changing
     //id to a recipient, likes, follows etc should
     //allow changing to any id you have.
-    u.createHiddenInputs(opts),
+    u.createHiddenInputs(opts.content, 'content'),
     h('button', {type: 'submit', name: 'type', value:'preview'}, name),
   )
 
 }
+*/
 
 module.exports = function (opts) {
   var sbot = this.sbot, api = this.api, context = this.context
@@ -159,21 +161,19 @@ module.exports = function (opts) {
                       backlinks(sbot, data.key, function (err, likes, backlinks) {
                         if(err) return cb(err)
                         cb(null, ['div.MessageExtra',
-                          Publish({
-                              id: context.id,
-                              suggestedRecps: data.value.author,
-                              content: {
-                                type: 'vote',
-                                vote: {
-                                  link:data.key, value: 1,
-                                  expression: 'Yup'
-                                },
-                                channel: data.value.content.channel
-                              }
+                          api('publish', {
+                            id: context.id,
+                            suggestedRecps: data.value.author,
+                            content: {
+                              type: 'vote',
+                              vote: {
+                                link:data.key, value: 1,
+                                expression: 'Yup'
+                              },
+                              channel: data.value.content.channel
                             },
-                            'Yup' + (likes.length ? '('+likes.length+')' : '')
-                          ),
-                          //['button', 'yup', likes.length ? '('+likes.length+')' : ''],
+                            name: 'Yup' + (likes.length ? '('+likes.length+')' : '')
+                          }),
                           (backlinks.length ?
                           ['ul.MessageBacklinks',
                             backlinks.map(function (e) {
@@ -192,11 +192,13 @@ module.exports = function (opts) {
                   )
                 })
               ),
-              Compose(context.id, {
-                type: 'post',
-                root: opts.id,
-                recps: uniqueRecps(ary[0].value.content.recps),
-                branch: sort.heads(ary)
+              api('compose', {
+                content: {
+                  type: 'post',
+                  root: opts.id,
+                  recps: uniqueRecps(ary[0].value.content.recps),
+                  branch: sort.heads(ary)
+                }
               })
             )
           )
@@ -204,6 +206,4 @@ module.exports = function (opts) {
     })
   }
 }
-
-
 
