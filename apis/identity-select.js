@@ -1,5 +1,5 @@
 var cont = require('cont')
-
+var ref = require('ssb-ref')
 module.exports = function (opts) {
   var sbot = this.sbot
   var api = this.api
@@ -7,7 +7,7 @@ module.exports = function (opts) {
   var main = context.id || sbot.id
   var restrict = opts.restrict
   //form to switch the main identity
-  if(false && opts.main === true)
+  if(opts.main === true)
     return ['form', {method: 'POST'},
       ['div.IdentitySelector._menu',
         ['input', {type: 'hidden', name: 'type', value: 'identitySelect'}],
