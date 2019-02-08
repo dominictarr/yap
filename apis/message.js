@@ -8,7 +8,7 @@ toUrl = u.toUrl
 
 var messageTypes = require('./messages')
 
-module.exports = u.createRenderer(function render (data) {
-  return this.api(['messages', data.value.content.type], data)
+module.exports = u.createRenderer(function render (data, apply) {
+  return apply(['messages', data.value.content.type], data)
 })
 

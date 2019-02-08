@@ -13,22 +13,23 @@ function rate (prog) {
   return (prog.current - prog.start) / (prog.target - prog.start)
 }
 
-module.exports = function () {
-  var sbot = this.sbot
-  return function (cb) {
-    sbot.progress(function (err, prog) {
-      var s = '', r = 1
-      for(var k in prog)
-        if(prog[k].current <= prog[k].target) {
-          var _r = rate(prog[k])
-          r = Math.min(r, _r)
-          s += (s ? ', ' : '') + k +': ' + percent(r)
-        }
-      cb(null, ['progress', {value: r, max: 1, title: s}, 
-        u.cacheTag('/progress', 'prog', Date.now() + 1000)
-      ])
-    })
+module.exports = function (sbot) {
+  return function () {
+    return function (cb) {
+      sbot.progress(function (err, prog) {
+        var s = '', r = 1
+        for(var k in prog)
+          if(prog[k].current <= prog[k].target) {
+            var _r = rate(prog[k])
+            r = Math.min(r, _r)
+            s += (s ? ', ' : '') + k +': ' + percent(r)
+          }
+        cb(null, ['progress', {value: r, max: 1, title: s}, 
+          u.cacheTag('/progress', 'prog', Date.now() + 1000)
+        ])
+      })
+    }
   }
-
 }
+
 

@@ -28,39 +28,38 @@ function IdentitySelect(sbot, main, restrict) {
   }
 }
 
-module.exports = function (opts) {
-  var api = this.api
-  var sbot = this.sbot
-  var context = this.context
-  var id = opts.id
-  var meta = opts.meta || opts.content
-  return api('publish', {
-    id: opts.id,
-    content: opts.meta || opts.content,
-    inputs:
-      ['textarea', {name: 'content[text]'}],
-    name: 'Preview'
-  })
-/*
-  return ['form', {name: 'publish', method: 'POST'},
-    //selected id to post from. this should
-    //be a dropdown, that only defaults to context.id
-    (
-      id ?
-      ['input', { name: 'id', value: id, type: 'hidden'}] :
-      api('identitySelect', {})
- //     IdentitySelect(sbot, context.id || sbot.id)
-    ),
-    //root + branch. not shown in interface.
-    u.createHiddenInputs(meta, 'content'),
+module.exports = function (sbot) {
+  return function (opts, apply, req) {
+    var context = req.context
+    var id = opts.id
+    var meta = opts.meta || opts.content
+    return apply('publish', {
+      id: opts.id,
+      content: opts.meta || opts.content,
+      inputs:
+        ['textarea', {name: 'content[text]'}],
+      name: 'Preview'
+    })
+  /*
+    return ['form', {name: 'publish', method: 'POST'},
+      //selected id to post from. this should
+      //be a dropdown, that only defaults to context.id
+      (
+        id ?
+        ['input', { name: 'id', value: id, type: 'hidden'}] :
+        api('identitySelect', {})
+   //     IdentitySelect(sbot, context.id || sbot.id)
+      ),
+      //root + branch. not shown in interface.
+      u.createHiddenInputs(meta, 'content'),
 
-    ['input', {type: 'submit', name: 'type', value:'preview'}, 'Preview'],
-    // TODO: lookup mentions before publishing. (disable for now)
-    ['input', {type: 'submit', name: 'type', value:'publish', disabled: true}, 'Publish'],
-  ]
-*/
+      ['input', {type: 'submit', name: 'type', value:'preview'}, 'Preview'],
+      // TODO: lookup mentions before publishing. (disable for now)
+      ['input', {type: 'submit', name: 'type', value:'publish', disabled: true}, 'Publish'],
+    ]
+  */
+  }
 }
-
 
 
 

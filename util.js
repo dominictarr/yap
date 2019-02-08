@@ -108,7 +108,10 @@ exports.createHiddenInputs = function createHiddenInputs (meta, _path) {
 }
 
 var cacheId = exports.cacheId = function (id) {
-  return '_'+Buffer.from(id.substring(1, 12), 'base64').toString('hex')
+  if('string' === typeof id)
+    return '_'+Buffer.from(id.substring(1, 12), 'base64').toString('hex')
+  else
+    return 'R'+id.lte+'-'+(id.lte - id.gte)
 }
 exports.cacheTag = function (url, id, time) {
   if(time)
@@ -198,20 +201,22 @@ exports.markdown = function markdown (content) {
 }
 
 exports.createRenderer = function (render) {
-  return function (opts) {
-    var self = this
-    var sbot = this.sbot
-    if(opts.id && ref.isMsgLink(opts.id))
-      return function (cb) {
-        sbot.get({id:opts.id, private: true}, function (err, msg) {
-          if(err) return cb(err)
-          var data = {key: opts.id, value: msg, timestamp: msg.timestamp || Date.now() }
-          cb(null, render.call(self, data))
-        })
-      }
-    else if(opts.key && opts.value)
-      return render.call(self, opts)
+  return function (sbot) {
+    return function (opts, apply) {
+      if(opts.id && ref.isMsgLink(opts.id))
+        return function (cb) {
+          sbot.get({id:opts.id, private: true}, function (err, msg) {
+            if(err) return cb(err)
+            var data = {key: opts.id, value: msg, timestamp: msg.timestamp || Date.now() }
+            cb(null, render(data, apply))
+          })
+        }
+      else if(opts.key && opts.value)
+        return render(opts, apply)
+    }
   }
 }
+
+
 
 

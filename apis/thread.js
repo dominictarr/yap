@@ -119,91 +119,92 @@ function Publish (opts, name) {
 }
 */
 
-module.exports = function (opts) {
-  var sbot = this.sbot, api = this.api, context = this.context
-  var since = this.since
-  return function (cb) {
-    var cacheTime = 0
-    if(!ref.isMsg(opts.id))
-      return cb(new Error('expected valid msg id as id'))
-    sbot.get({id:opts.id, private: true}, function (err, msg) {
-      if(err) return cb(err)
-      var data = {key: opts.id, value: msg, timestamp: msg.timestamp || Date.now() }
-      if(data.value.content.root)
-        cb(null, api('message', data)) //just show one message
-      else if(data.value.content.type != 'post')
-        cb(null, api('message', data)) //just show one message
-      else
-        getThread(sbot, opts.id, function (err, ary) {
-          ary.unshift(data)
-          var o = {}, cacheTime
-          ary = ary.filter(function (e) {
-            if(o[e.key]) return false
-            return o[e.key] = true
-          })
-          sort(ary)
-          var recipients = ' '
-          if(ary[0].value.content.recps)
-              recipients = ['div.Recipients', 'in this thread:',
-                ary[0].value.content.recps.map(function (e) {
-                  return api('avatar', e)
-                })]
-          cb(null,
-            h('div.thread',
-              u.cacheTag(toUrl('thread', opts), data.key, since),
-              ary[0].value.content.text && h('title', msum.title(ary[0].value.content.text)),
-              recipients,
-              h('form', {name: 'publish', method: 'POST'},
-                ary.map(function (data) {
-                  return h('div',
-                    api('message', data),
-                    function (cb) {
-                      backlinks(sbot, data.key, function (err, likes, backlinks) {
-                        if(err) return cb(err)
-                        cb(null, ['div.MessageExtra',
-                          api('publish', {
-                            id: context.id,
-                            suggestedRecps: data.value.author,
-                            content: {
-                              type: 'vote',
-                              vote: {
-                                link:data.key, value: 1,
-                                expression: 'Yup'
+module.exports = function (sbot) {
+  return function (opts, apply, req) {
+    var context = req.context
+    var since = apply.since
+    return function (cb) {
+      var cacheTime = 0
+      if(!ref.isMsg(opts.id))
+        return cb(new Error('expected valid msg id as id'))
+      sbot.get({id:opts.id, private: true}, function (err, msg) {
+        if(err) return cb(err)
+        var data = {key: opts.id, value: msg, timestamp: msg.timestamp || Date.now() }
+        if(data.value.content.root)
+          cb(null, apply('message', data)) //just show one message
+        else if(data.value.content.type != 'post')
+          cb(null, apply('message', data)) //just show one message
+        else
+          getThread(sbot, opts.id, function (err, ary) {
+            ary.unshift(data)
+            var o = {}, cacheTime
+            ary = ary.filter(function (e) {
+              if(o[e.key]) return false
+              return o[e.key] = true
+            })
+            sort(ary)
+            var recipients = ' '
+            if(ary[0].value.content.recps)
+                recipients = ['div.Recipients', 'in this thread:',
+                  ary[0].value.content.recps.map(function (e) {
+                    return apply('avatar', e)
+                  })]
+            cb(null,
+              h('div.thread',
+                u.cacheTag(apply.toUrl('thread', opts), data.key, since),
+                ary[0].value.content.text && h('title', msum.title(ary[0].value.content.text)),
+                recipients,
+                h('form', {name: 'publish', method: 'POST'},
+                  ary.map(function (data) {
+                    return h('div',
+                      apply('message', data),
+                      function (cb) {
+                        backlinks(sbot, data.key, function (err, likes, backlinks) {
+                          if(err) return cb(err)
+                          cb(null, ['div.MessageExtra',
+                            apply('publish', {
+                              id: context.id,
+                              suggestedRecps: data.value.author,
+                              content: {
+                                type: 'vote',
+                                vote: {
+                                  link:data.key, value: 1,
+                                  expression: 'Yup'
+                                },
+                                channel: data.value.content.channel
                               },
-                              channel: data.value.content.channel
-                            },
-                            name: 'Yup' + (likes.length ? '('+likes.length+')' : '')
-                          }),
-                          (backlinks.length ?
-                          ['ul.MessageBacklinks',
-                            backlinks.map(function (e) {
-                              return ['li',
-                                api('avatar', {id:e.value.author}),
-                                ' ',
-                                api('messageLink', e),
-                                ' ',
-                                e.value.content.channel && api('channelLink', e.value.content.channel)
-                              ]
-                            })
-                          ] : '')
-                        ])
-                      })
-                    }
-                  )
+                              name: 'Yup' + (likes.length ? '('+likes.length+')' : '')
+                            }),
+                            (backlinks.length ?
+                            ['ul.MessageBacklinks',
+                              backlinks.map(function (e) {
+                                return ['li',
+                                  apply('avatar', {id:e.value.author}),
+                                  ' ',
+                                  apply('messageLink', e),
+                                  ' ',
+                                  e.value.content.channel && api('channelLink', e.value.content.channel)
+                                ]
+                              })
+                            ] : '')
+                          ])
+                        })
+                      }
+                    )
+                  })
+                ),
+                apply('compose', {
+                  content: {
+                    type: 'post',
+                    root: opts.id,
+                    recps: uniqueRecps(ary[0].value.content.recps),
+                    branch: sort.heads(ary)
+                  }
                 })
-              ),
-              api('compose', {
-                content: {
-                  type: 'post',
-                  root: opts.id,
-                  recps: uniqueRecps(ary[0].value.content.recps),
-                  branch: sort.heads(ary)
-                }
-              })
+              )
             )
-          )
-        })
-    })
+          })
+      })
+    }
   }
 }
-

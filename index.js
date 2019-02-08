@@ -1,6 +1,6 @@
 var fs = require('fs')
 var path = require('path')
-var _apis = require('./apis')
+var apis = require('./apis')
 var nested = require('libnested')
 var Stack = require('stack')
 var URL = require('url')
@@ -12,20 +12,22 @@ var pull = require('pull-stream')
 var toPull = require('stream-to-pull-stream')
 var CacheWatcher = require('./cache-watcher')
 
+var Coherence = require('coherence-framework')
+
 var doctype = '<!DOCTYPE html \n  PUBLIC "-//W3C//DTD HTML 4.01//EN"\n  "http://www.w3.org/TR/html4/strict.dtd">'
 
 //actions may make writes to sbot, or can set things
 var actions = {
   //note: opts is post body
-  identitySelect: function (opts, cb) {
+  identitySelect: function (opts, apply, req, cb) {
     var context = this.context
     context.id = opts.id
     cb(null, opts, context)
   },
-  preview: function (opts, cb) {
+  preview: function (opts, apply, req, cb) {
     cb(null, opts)
   },
-  publish: function (opts, cb) {
+  publish: function (opts, apply, req, cb) {
     if(opts.content.recps === '')
       delete opts.content.recps
     else if('string' === typeof opts.content.recps) {
@@ -35,7 +37,7 @@ var actions = {
     if(Array.isArray(opts.content.recps))
       opts.private = true
 
-    this.sbot.identities.publishAs(opts, function (err, msg) {
+    sbot.identities.publishAs(opts, function (err, msg) {
       if(err) cb(err)
       else cb()
     })
@@ -46,34 +48,37 @@ var actions = {
   }
 }
 
-function layout(content) {
-  return h('html',
-      h('head', {profile: "http://www.w3.org/2005/10/profile"},
-        h('meta', {charset: 'UTF-8'}),
-        h('link', {href: '/static/style.css', rel: 'stylesheet'}),
-        h('script', {src: '/static/cache.js'}),
-        h('link', {rel: 'icon', type: 'image/png', href: '/favicon.ico?test=1'}),
-      ),
-      h('body',
-        h('div#AppHeader',
-          h('nav',
-            h('div', {style: 'display:flex;flex-direction:row'}, h('h2', 'yap'), h('img', {src: '/favicon.ico'})),
-            ['a', {href: '/public'}, 'Public'],
-            ['a', {href: '/private'}, 'Private'],
+var coherence = Coherence(function (opts, content, apply) {
+  return ['html',
+    ['head', {profile: "http://www.w3.org/2005/10/profile"},
+      ['meta', {charset: 'UTF-8'}],
+      ['link', {href: '/static/style.css', rel: 'stylesheet'}],
+      ['script', {src: coherence.scriptUrl}],
+      ['link', {rel: 'icon', type: 'image/png', href: '/favicon.ico'}],
+    ],
+    ['body',
+      ['div#AppHeader',
+        ['nav',
+          ['div', {style: 'display:flex;flex-direction:row'},
+            ['h2', 'yap'],
+            ['img', {src: '/favicon.ico'}]
+          ],
+          ['a', {href: '/public'}, 'Public'],
+          ['a', {href: '/private'}, 'Private'],
 //          ['a', {href: '/gatherings'}, 'Gatherings'],
-            ['form', {method: 'GET', action: '/search'},
-              ['input', {type: 'text', name: 'query', placeholder: 'Search'}],
-              ['input', {type: 'hidden', name: 'limit', value: 20}],
-              ['button', {}, 'go']
-            ],
-            this.api('identitySelect', {main: true})
-          ),
-          this.api('progress', {})
-        ),
-      h('div.main', content)
-    )
-  )
-}
+          ['form', {method: 'GET', action: '/search'},
+            ['input', {type: 'text', name: 'query', placeholder: 'Search'}],
+            ['input', {type: 'hidden', name: 'limit', value: 20}],
+            ['button', {}, 'go']
+          ],
+          apply('identitySelect', {main: true})
+        ],
+        apply('progress', {})
+      ],
+      ['div.main', content]
+    ]
+  ]
+})
 
 var favicon = fs.readFileSync(path.join(__dirname, 'static', 'favicon.ico'))
 
@@ -97,49 +102,20 @@ function _Stack() {
 
 require('ssb-client')(function (err, sbot) {
   if(err) throw err
-  var watcher = CacheWatcher(sbot)
 
-  var apis = _apis
-
-  function render (embed, req, res, next) {
-    var url = URL.parse(req.url)
-    var path = url.pathname.split('/').slice(1)
-    var opts = QS.parse(url.query)
-    var context = req.context
-    function callApi (path, opts) {
-      var fn = nested.get(apis, path)
-      if(!fn) return ['div.noRenderer',
-        ['label', 'error, no renderer at:', [''].concat(path).join('/')],
-        ['pre', JSON.stringify(opts, null, 2)],
-        ['pre', new Error().stack]
-      ]
-      if(!fn) return next() //new Error('no method at path:'+JSON.stringify(path)))
-      try { return fn.call(self, opts) }
-      catch (err) { next(err) }
-    }
-    var self = {
-      context: context,
-      api: callApi,
-      sbot: sbot,
-      since: watcher.since()
-    }
-    var A = callApi(path, opts)
-    if(A)
-      toHTML(!embed ? layout.call(self, A) : A) (function (err, result) {
-        if(err) next(err)
-        else {
-          if(!res._headerSent) {
-            try {
-              res.setHeader('content-type', 'text/html')
-            } catch (_) {
-              //sometimes, this gives an error,
-              //but _headerSent isn't true?
-            }
-          }
-          res.end((embed ? '' : doctype)+result.outerHTML)
-        }
-      })
-  }
+  coherence
+    .use('avatar',         require('./apis/avatar')(sbot))
+    .use('identitySelect', require('./apis/identity-select')(sbot))
+    .use('public',         require('./apis/public')(sbot))
+    .use('private',        require('./apis/private')(sbot))
+    .use('message',        require('./apis/message')(sbot))
+    .use('messages/post',  require('./apis/messages/post')(sbot))
+    .use('messages/vote',  require('./apis/messages/vote')(sbot))
+    .use('progress',       require('./apis/progress')(sbot))
+    .use('thread',         require('./apis/thread')(sbot))
+    .use('compose',        require('./apis/compose')(sbot))
+    .use('publish',        require('./apis/publish')(sbot))
+    .use('friends',        require('./apis/friends')(sbot))
 
   require('http').createServer(_Stack(
     function (req, res, next) {
@@ -177,35 +153,22 @@ require('ssb-client')(function (err, sbot) {
           })
         )
     },
-    function CheckCache (req, res, next) {
+    function context (req, res, next) {
       req.context = QS.parse(req.headers.cookie||'') || {id: sbot.id}
       req.context.id = req.context.id || sbot.id
-      if(req.url !== '/check-cache') return next()
-      var check
-      try {
-        check = JSON.parse(req.body)
-      } catch (err) { return next(err) }
-      var r = {}
-      for(var k in check) {
-        var v = watcher.check(k, check[k])
-        if(v) r[k] = v
-      }
-      res.end(JSON.stringify(r))
-     },
+      next()
+    },
+    //handle posts.
     function (req, res, next) {
       if(req.method == 'GET') return next()
       var id = req.context.id || sbot.id
       var opts = QS.parse(req.body)
-      var self = {
-        context: req.context,
-        sbot: sbot, api: callApi,
-        since: watcher.since()
-      }
+
       function callApi (path, opts) {
         try {
           var fn = nested.get(apis, path)
           if(!fn) return next()
-          return fn.call(self, opts)
+          return fn(opts, apply, req)
         } catch(err) {
           next(err)
         }
@@ -214,13 +177,16 @@ require('ssb-client')(function (err, sbot) {
         //  TODO: pass opts.id in, and wether this message
         //  preview should allow recipient selection, or changing id.
         //  api.preview can set the shape of the message if it likes.
+
+        //XXX this isn't working
+
         toHTML(layout.call(self, callApi(['preview'], opts))) (function (err, result) {
           if(err) next(err)
           else res.end('<!DOCTYPE html>'+result.outerHTML)
         })
         return
       }
-      actions[opts.type].call({sbot: sbot, context: req.context}, opts, function (err, _opts, context) {
+      actions[opts.type](opts, apply, req, function (err, _opts, context) {
         if(err) return next(err)
         if(context) {
           req.context = context
@@ -242,6 +208,7 @@ require('ssb-client')(function (err, sbot) {
         res.end()
       })
     },
+
     //HANDLE BLOBS
     require('emoji-server')('/img/emoji'),
     function (req, res, next) {
@@ -257,11 +224,19 @@ require('ssb-client')(function (err, sbot) {
       } else
         next()
     },
-    function (req, res, next) {
-      render(false, req, res, next)
-    },
+    //mount coherence!
+    coherence
   )).listen(8005)
 })
+
+
+
+
+
+
+
+
+
 
 
 
