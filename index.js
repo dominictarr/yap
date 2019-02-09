@@ -10,8 +10,8 @@ var toHTML = u.toHTML
 var h = u.h
 var pull = require('pull-stream')
 var toPull = require('stream-to-pull-stream')
-var CacheWatcher = require('./cache-watcher')
-
+var Logger = require('morgan')
+var BodyParser = require('urlencoded-request-parser')
 var Coherence = require('coherence-framework')
 
 var doctype = '<!DOCTYPE html \n  PUBLIC "-//W3C//DTD HTML 4.01//EN"\n  "http://www.w3.org/TR/html4/strict.dtd">'
@@ -115,13 +115,13 @@ require('ssb-client')(function (err, sbot) {
     .use('thread',         require('./apis/thread')(sbot))
     .use('compose',        require('./apis/compose')(sbot))
     .use('publish',        require('./apis/publish')(sbot))
+    .use('preview',        require('./apis/preview')(sbot))
     .use('friends',        require('./apis/friends')(sbot))
+    .use('search',         require('./apis/search')(sbot))
+    .use('mentions',       require('./apis/mentions')(sbot))
 
   require('http').createServer(_Stack(
-    function (req, res, next) {
-      console.log(req.method, req.url)
-      next()
-    },
+    Logger(),
     //everything breaks if blobs isn't first, but not sure why?
     require('ssb-ws/blobs')(sbot, {prefix: '/blobs'}),
     /*
@@ -142,17 +142,7 @@ require('ssb-client')(function (err, sbot) {
 
       next()
     },
-    function collectBody (req, res, next) {
-      if(req.method !== "POST") return next()
-      else
-        pull(
-          toPull.source(req),
-          pull.collect(function (err, ary) {
-            req.body = Buffer.concat(ary).toString('utf8')
-            next(err)
-          })
-        )
-    },
+    BodyParser(),
     function context (req, res, next) {
       req.context = QS.parse(req.headers.cookie||'') || {id: sbot.id}
       req.context.id = req.context.id || sbot.id
@@ -162,8 +152,9 @@ require('ssb-client')(function (err, sbot) {
     function (req, res, next) {
       if(req.method == 'GET') return next()
       var id = req.context.id || sbot.id
-      var opts = QS.parse(req.body)
-
+//      var opts = QS.parse(req.body)
+      var opts = req.body
+      console.log('B', opts)
       function callApi (path, opts) {
         try {
           var fn = nested.get(apis, path)
@@ -178,12 +169,16 @@ require('ssb-client')(function (err, sbot) {
         //  preview should allow recipient selection, or changing id.
         //  api.preview can set the shape of the message if it likes.
 
+
+        req.url = '/preview?'+QS.stringify(opts)
+        coherence(req, res, next)
+
         //XXX this isn't working
 
-        toHTML(layout.call(self, callApi(['preview'], opts))) (function (err, result) {
-          if(err) next(err)
-          else res.end('<!DOCTYPE html>'+result.outerHTML)
-        })
+//        toHTML(layout.call(self, callApi(['preview'], opts))) (function (err, result) {
+//          if(err) next(err)
+//          else res.end('<!DOCTYPE html>'+result.outerHTML)
+//        })
         return
       }
       actions[opts.type](opts, apply, req, function (err, _opts, context) {
@@ -228,16 +223,4 @@ require('ssb-client')(function (err, sbot) {
     coherence
   )).listen(8005)
 })
-
-
-
-
-
-
-
-
-
-
-
-
 
