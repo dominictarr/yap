@@ -16,13 +16,13 @@ module.exports = function (sbot) {
           if(ids.length == 0)
             cb(null, ['h1', 'no feed named:'+opts.query])
           else if(ids.length == 1)
-            cb(null, api('public', {author: ids[0].id}))
+            cb(null, apply('public', {author: ids[0].id}))
           else
             cb(null, ['div',
               ['div', opts.query + ' may also refer to:'].concat(ids.slice(1).map(function (e) {
-                return api('avatar', {id: e.id, name: false})
+                return apply('avatar', {id: e.id, name: false})
               })),
-              api('public', {author: ids[0].id})
+              apply('public', {author: ids[0].id})
             ])
         })
       }
@@ -30,7 +30,7 @@ module.exports = function (sbot) {
     return pull(
       sbot.search.query(opts),
       pull.map(function (data) {
-        return api('message', data)
+        return apply('message', data)
       })
     )
   }
