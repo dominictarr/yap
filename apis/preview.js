@@ -12,6 +12,8 @@ module.exports = function (sbot) {
     var id = opts.id
     var content = opts.content
 
+    console.error("preview", opts)
+
     //fake message, with enough fields to give to message renderer
     var data = {
       key: '%................',
@@ -20,7 +22,6 @@ module.exports = function (sbot) {
         content: content
       }
     }
-    console.log("OPTS", opts)
     return ['div.MessagePreview',
       ['form',
         {name: 'publish', method: 'POST'},
@@ -48,3 +49,4 @@ module.exports = function (sbot) {
     //submit takes you to back to the thread page.
   }
 }
+
