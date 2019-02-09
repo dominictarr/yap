@@ -1,9 +1,12 @@
 var u = require('../util')
+var Translations = require('../translations')
 
 module.exports = function (sbot) {
   return function (opts, apply, req) {
-    var context = req.context
+    var context = req.cookies
     var id = opts.id
+    var tr = Translations(context.lang)
+
     var content = opts.content || opts.meta || {}
     return ['form', {name: 'publish', method: 'POST'},
       //selected id to post from. this should
@@ -17,7 +20,7 @@ module.exports = function (sbot) {
       //root + branch. not shown in interface.
       u.createHiddenInputs(content, 'content'),
       opts.inputs,
-      ['button', {type: 'submit', name: 'type', value:'preview'}, opts.name || 'Publish'],
+      ['button', {type: 'submit', name: 'type', value:'preview'}, opts.name || tr('Publish')],
       // TODO: lookup mentions before publishing. (disable for now)
     ]
   }

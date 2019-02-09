@@ -1,7 +1,9 @@
 var toUrl = require('../util').toUrl
 
 module.exports = function (sbot) {
-  return function (opts, apply) {
+  return function (opts, apply, req) {
+    var tr = require('../translations')(req.cookies.lang)
+
     return function (cb) {
       var max = 1.5
       sbot.friends.hops({start: opts.id, reverse: false, max: max}, function (err, follows) {
@@ -23,17 +25,17 @@ module.exports = function (sbot) {
           function group (label, list) {
             return [
               'div.'+label,
-              ['h2', label],
+              ['h2', tr(label)],
             ].concat(list.slice(0, limit).map(function (e) {
               return apply('avatar', {id: e, image: true, name: false, href: toUrl('friends', {id: e})})
             })).concat(
               //TODO make this a link to a page showing friends.
-              list.length > limit ? '...and '+(list.length-limit)+' more' : ''
+              list.length > limit ? '...' + tr('AndMore', list.length-limit) : ''
             )
           }
 
           cb(null, [
-            ['h1', 'Friends of ', apply('avatar', {id: opts.id, image: false, name: true})],
+            ['h1', tr('FriendsOf'), ' ', apply('avatar', {id: opts.id, image: false, name: true})],
             group('Friends', Object.keys(friends)),
             group('Follows', Object.keys(follows)),
             group('Followers', Object.keys(followers))

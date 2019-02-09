@@ -2,11 +2,7 @@ var cont = require('cont')
 var ref = require('ssb-ref')
 module.exports = function (sbot) {
   return function (opts, apply, req) {
-    console.log('identity-select')
-    console.log(opts, apply, req)
-
-    var api = apply
-    var context = req.context
+    var context = req.cookies
     var main = context.id || sbot.id
 
     var restrict = opts.restrict
@@ -16,7 +12,7 @@ module.exports = function (sbot) {
         ['div.IdentitySelector._menu',
           ['input', {type: 'hidden', name: 'type', value: 'identitySelect'}],
           ['div.Menu',
-            api('avatar', {id: context.id, image: true, name: false}),
+            apply('avatar', {id: main, image: true, name: false}),
             ['ul',
               function (cb) {
                 sbot.identities.list(function (err, ls) {
@@ -46,11 +42,8 @@ module.exports = function (sbot) {
       return function (cb) {
         sbot.identities.list(function (err, ls) {
           //move main identity to the front
-          console.log('main', main, ls.indexOf(main))
-          console.log('list', ls)
           ls.splice(ls.indexOf(main), 1)
           ls.unshift(main)
-          console.log('after', ls)
 
           cb(null, [
             'select', {name: 'id'},
@@ -66,4 +59,7 @@ module.exports = function (sbot) {
     }
   }
 }
+
+
+
 

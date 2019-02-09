@@ -1,4 +1,6 @@
 var ref = require('ssb-ref')
+var Translations = require('../translations')
+
 var u = require('../util')
 function IdentitySelect(sbot, main, restrict) {
   if(restrict)
@@ -9,11 +11,8 @@ function IdentitySelect(sbot, main, restrict) {
   return function (cb) {
     sbot.identities.list(function (err, ls) {
       //move main identity to the front
-      console.log('main', main, ls.indexOf(main))
-      console.log('list', ls)
       ls.splice(ls.indexOf(main), 1)
       ls.unshift(main)
-      console.log('after', ls)
 
       cb(null, [
         'select', {name: 'id'},
@@ -30,9 +29,10 @@ function IdentitySelect(sbot, main, restrict) {
 
 module.exports = function (sbot) {
   return function (opts, apply, req) {
-    var context = req.context
+    var context = req.cookies
     var id = opts.id
     var meta = opts.meta || opts.content
+    var tr = Translations(context.lang)
     return apply('publish', {
       id: opts.id,
       content: opts.meta || opts.content,
@@ -53,13 +53,11 @@ module.exports = function (sbot) {
       //root + branch. not shown in interface.
       u.createHiddenInputs(meta, 'content'),
 
-      ['input', {type: 'submit', name: 'type', value:'preview'}, 'Preview'],
+      ['input', {type: 'submit', name: 'type', value:'preview'}, tr('Preview')],
       // TODO: lookup mentions before publishing. (disable for now)
-      ['input', {type: 'submit', name: 'type', value:'publish', disabled: true}, 'Publish'],
+      ['input', {type: 'submit', name: 'type', value:'publish', disabled: true}, tr('Publish')],
     ]
   */
   }
 }
-
-
 

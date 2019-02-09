@@ -35,7 +35,6 @@ function cleanRange (_o) {
 module.exports = function (sbot) {
   return function (opts, apply) {
     var self = this
-    api = apply
     opts.reverse = opts.reverse !== false
   //  var min = !isNaN(+opts.lt) ? +opts.lt : Date.now()
   //  var max = !isNaN(+opts.gt) ? +opts.gt : 0
@@ -45,8 +44,6 @@ module.exports = function (sbot) {
 
     var type = (opts.private ? 'private' : 'public')
     var Type = (opts.private ? 'Private' : 'Public')
-
-    console.log("RANGE", opts, cleanRange(opts))
 
     return function (cb) {
         //grab a handle on the since value _before_ we make the
@@ -80,8 +77,7 @@ module.exports = function (sbot) {
             }).map(function (data) {
               min = Math.min(data.value.timestamp, min)
               max = Math.max(data.value.timestamp, max)
-              return api('message', data)
-
+              return apply('message', data)
             })
             var nav_opts = {}
             if(opts.author)
@@ -90,7 +86,7 @@ module.exports = function (sbot) {
             var nav = ['span',
               '<< ',
               opts.author ?
-                api(['avatar'], {
+                apply('avatar', {
                   id: opts.author,
                   name: true,
                   image: false,

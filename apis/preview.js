@@ -8,11 +8,10 @@ function toRecps (ary) {
 }
 
 module.exports = function (sbot) {
-  return function (opts, apply) {
+  return function (opts, apply, req) {
     var id = opts.id
     var content = opts.content
-
-    console.error("preview", opts)
+    var tr = require('../translations')(req.cookies.lang)
 
     //fake message, with enough fields to give to message renderer
     var data = {
@@ -40,7 +39,7 @@ module.exports = function (sbot) {
         apply('message', data),
         u.createHiddenInputs(data.value.content, 'content'),
         apply('mentions', data.value.content),
-        ['button', {name: 'type', value: 'publish'}, 'Publish']
+        ['button', {name: 'type', value: 'publish'}, tr('Publish')]
       ]
     ]
 
@@ -49,4 +48,7 @@ module.exports = function (sbot) {
     //submit takes you to back to the thread page.
   }
 }
+
+
+
 

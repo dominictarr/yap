@@ -67,62 +67,12 @@ function backlinks (sbot, id, cb) {
   )
 }
 
-/*
-  I want a generic way of submitting forms.
-  different apps should be able to post messages
-  with any sort of content...
-
-  one problem is that url encoding does not map
-  to JSON types - boolean or numbers are just strings.
-  you could automatically convert types, but then
-  if the user types "true" in the textarea, you get
-  an invalid message. applications should handle this
-  but here the user intended to share the word "true"
-
-  I think the solution is to put the type in the key.
-
-  one awkward case is that there is date input and time input
-  and a datetime input, but it isn't widely supported.
-  so that kinda needs to be split between two fields.
-*/
-
-/*
-function Compose (id, meta) {
-  return h('form', {name: 'publish', method: 'POST'},
-    //selected id to post from. this should
-    //be a dropdown, that only defaults to context.id
-    h('input', {
-      name: 'id', value: id, type: 'hidden'
-    }),
-    //root + branch. not shown in interface.
-    u.createHiddenInputs(meta, 'content'),
-
-    h('textarea', {name: 'content[text]'}),
-    h('input', {type: 'submit', name: 'type', value:'preview'}, 'Preview'),
-// TODO: lookup mentions before publishing.
-    h('input', {type: 'submit', name: 'type', value:'publish', disabled: true}, 'Publish'),
-  )
-}
-
-function Publish (opts, name) {
-  name = name || 'Preview'
-  return h('form', {name: 'publish', method: 'POST'},
-    //selected id to post from. this should
-    //be a dropdown, that defaults to context.id
-    //private threads should only allow changing
-    //id to a recipient, likes, follows etc should
-    //allow changing to any id you have.
-    u.createHiddenInputs(opts.content, 'content'),
-    h('button', {type: 'submit', name: 'type', value:'preview'}, name),
-  )
-
-}
-*/
 
 module.exports = function (sbot) {
   return function (opts, apply, req) {
-    var context = req.context
+    var context = req.cookies
     var since = apply.since
+    var tr = require('../translations')(context.lang)
     return function (cb) {
       var cacheTime = 0
       if(!ref.isMsg(opts.id))
@@ -145,7 +95,7 @@ module.exports = function (sbot) {
             sort(ary)
             var recipients = ' '
             if(ary[0].value.content.recps)
-                recipients = ['div.Recipients', 'in this thread:',
+                recipients = ['div.Recipients', tr('ThreadRecipients'),
                   ary[0].value.content.recps.map(function (e) {
                     return apply('avatar', e)
                   })]
@@ -161,6 +111,8 @@ module.exports = function (sbot) {
                       function (cb) {
                         backlinks(sbot, data.key, function (err, likes, backlinks) {
                           if(err) return cb(err)
+
+                          var expression = tr('Like')
                           cb(null, ['div.MessageExtra',
                             apply('publish', {
                               id: context.id,
@@ -169,11 +121,11 @@ module.exports = function (sbot) {
                                 type: 'vote',
                                 vote: {
                                   link:data.key, value: 1,
-                                  expression: 'Yup'
+                                  expression: expression
                                 },
                                 channel: data.value.content.channel
                               },
-                              name: 'Yup' + (likes.length ? '('+likes.length+')' : '')
+                              name: expression + ' ' + (likes.length ? '('+likes.length+')' : '')
                             }),
                             (backlinks.length ?
                             ['ul.MessageBacklinks',
@@ -183,7 +135,7 @@ module.exports = function (sbot) {
                                   ' ',
                                   apply('messageLink', e),
                                   ' ',
-                                  e.value.content.channel && api('channelLink', e.value.content.channel)
+                                  e.value.content.channel && apply('channelLink', e.value.content.channel)
                                 ]
                               })
                             ] : '')
@@ -208,3 +160,4 @@ module.exports = function (sbot) {
     }
   }
 }
+

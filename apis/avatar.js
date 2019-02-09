@@ -12,9 +12,13 @@ module.exports = function (sbot) {
     var _image = opts.image !== false //defaults to true
     var _name = opts.name === true //defaults to false
 
+    if(!opts.id) throw new Error('missing id')
+
+
     return function (cb) {
       if(!ref.isFeed(opts.id))
         return cb(new Error('expected valid feed id as id'))
+
       sbot.names.getImageFor(opts.id, function (err, blobId) {
         sbot.names.getSignifier(opts.id, function (err, name) {
           cb(null,
@@ -34,6 +38,5 @@ module.exports = function (sbot) {
     }
   }
 }
-
 
 
