@@ -1,18 +1,22 @@
 var fs = require('fs')
 var path = require('path')
-var apis = require('./apis')
 var nested = require('libnested')
 var Stack = require('stack')
 var URL = require('url')
 var QS = require('qs')
 var u = require('./util')
 var toHTML = u.toHTML
-var h = u.h
 var pull = require('pull-stream')
 var toPull = require('stream-to-pull-stream')
-var Logger = require('morgan')
-var BodyParser = require('urlencoded-request-parser')
-var Coherence = require('coherence-framework')
+var ref = require('ssb-ref')
+
+// middleware
+var Logger       = require('morgan')
+var Emoji        = require('emoji-server')
+var Static       = require('ecstatic')
+var BodyParser   = require('urlencoded-request-parser')
+var FavIcon      = require('serve-favicon')
+var Coherence    = require('coherence-framework')
 
 var doctype = '<!DOCTYPE html \n  PUBLIC "-//W3C//DTD HTML 4.01//EN"\n  "http://www.w3.org/TR/html4/strict.dtd">'
 
@@ -20,7 +24,7 @@ var doctype = '<!DOCTYPE html \n  PUBLIC "-//W3C//DTD HTML 4.01//EN"\n  "http://
 var actions = {
   //note: opts is post body
   identitySelect: function (opts, apply, req, cb) {
-    var context = this.context
+    var context = req.cookies
     context.id = opts.id
     cb(null, opts, context)
   },
@@ -41,74 +45,20 @@ var actions = {
       if(err) cb(err)
       else cb()
     })
-  },
-  bounce: function (opts, cb) {
-    delete opts.type
-    cb(null, opts)
   }
-}
-
-var coherence = Coherence(function (opts, content, apply) {
-  return ['html',
-    ['head', {profile: "http://www.w3.org/2005/10/profile"},
-      ['meta', {charset: 'UTF-8'}],
-      ['link', {href: '/static/style.css', rel: 'stylesheet'}],
-      ['script', {src: coherence.scriptUrl}],
-      ['link', {rel: 'icon', type: 'image/png', href: '/favicon.ico'}],
-    ],
-    ['body',
-      ['div#AppHeader',
-        ['nav',
-          ['div', {style: 'display:flex;flex-direction:row'},
-            ['h2', 'yap'],
-            ['img', {src: '/favicon.ico'}]
-          ],
-          ['a', {href: '/public'}, 'Public'],
-          ['a', {href: '/private'}, 'Private'],
-//          ['a', {href: '/gatherings'}, 'Gatherings'],
-          ['form', {method: 'GET', action: '/search'},
-            ['input', {type: 'text', name: 'query', placeholder: 'Search'}],
-            ['input', {type: 'hidden', name: 'limit', value: 20}],
-            ['button', {}, 'go']
-          ],
-          apply('identitySelect', {main: true})
-        ],
-        apply('progress', {})
-      ],
-      ['div.main', content]
-    ]
-  ]
-})
-
-var favicon = fs.readFileSync(path.join(__dirname, 'static', 'favicon.ico'))
-
-//stack, but check if you called next twice!
-function _Stack() {
-  var args = [].slice.call(arguments)
-  return Stack.apply(this, args.map(function (fn) {
-    return function (req, res, next) {
-      var err = new Error('already called')
-      var called = false
-      fn(req, res, function _next (err) {
-        if(err) console.error(err)
-        if(called) throw called
-        called = new Error('called already')
-        return next(err)
-      })
-
-    }
-  }))
 }
 
 require('ssb-client')(function (err, sbot) {
   if(err) throw err
 
-  coherence
+  var coherence = Coherence(require('./layout'))
     .use('avatar',         require('./apis/avatar')(sbot))
     .use('identitySelect', require('./apis/identity-select')(sbot))
     .use('public',         require('./apis/public')(sbot))
     .use('private',        require('./apis/private')(sbot))
     .use('message',        require('./apis/message')(sbot))
+    .use('messageLink',    require('./apis/message-link')(sbot))
+    .use('channelLink',    require('./apis/channel-link')(sbot))
     .use('messages/post',  require('./apis/messages/post')(sbot))
     .use('messages/vote',  require('./apis/messages/vote')(sbot))
     .use('progress',       require('./apis/progress')(sbot))
@@ -120,10 +70,12 @@ require('ssb-client')(function (err, sbot) {
     .use('search',         require('./apis/search')(sbot))
     .use('mentions',       require('./apis/mentions')(sbot))
 
-  require('http').createServer(_Stack(
+  require('http').createServer(Stack(
     Logger(),
     //everything breaks if blobs isn't first, but not sure why?
     require('ssb-ws/blobs')(sbot, {prefix: '/blobs'}),
+    FavIcon(path.join(__dirname, 'static', 'favicon.ico')),
+    BodyParser(),
     /*
       some settings we want to store in a cookie:
         * current identity
@@ -135,26 +87,16 @@ require('ssb-client')(function (err, sbot) {
       also: light/dark theme etc
     */
     function (req, res, next) {
-      if(req.url == '/favicon.ico')
-        return res.end(favicon)
-      if(req.url == '/')
-        return res.end('<h1>yap<img src="/favicon.ico"></h1>')
-
-      next()
-    },
-    BodyParser(),
-    function context (req, res, next) {
-      req.context = QS.parse(req.headers.cookie||'') || {id: sbot.id}
-      req.context.id = req.context.id || sbot.id
+      //just do it this simple way because it works
+      //I tried the cookie parser middleware but things got weird.
+      req.cookies = QS.parse(req.headers.cookie||'') || {id: sbot.id}
       next()
     },
     //handle posts.
     function (req, res, next) {
       if(req.method == 'GET') return next()
-      var id = req.context.id || sbot.id
-//      var opts = QS.parse(req.body)
+      var id = req.cookies.id || sbot.id
       var opts = req.body
-      console.log('B', opts)
       function callApi (path, opts) {
         try {
           var fn = nested.get(apis, path)
@@ -169,7 +111,6 @@ require('ssb-client')(function (err, sbot) {
         //  preview should allow recipient selection, or changing id.
         //  api.preview can set the shape of the message if it likes.
 
-
         req.url = '/preview?'+QS.stringify(opts)
         coherence(req, res, next)
 
@@ -181,11 +122,11 @@ require('ssb-client')(function (err, sbot) {
 //        })
         return
       }
-      actions[opts.type](opts, apply, req, function (err, _opts, context) {
+      actions[opts.type](opts, null, req, function (err, _opts, context) {
         if(err) return next(err)
         if(context) {
-          req.context = context
-          res.setHeader('set-cookie', QS.stringify(context))
+          req.cookies = context
+          res.setHeader('set-Cookie', QS.stringify(context))
         }
         /*
           after handling the post,
@@ -204,23 +145,12 @@ require('ssb-client')(function (err, sbot) {
       })
     },
 
-    //HANDLE BLOBS
-    require('emoji-server')('/img/emoji'),
-    function (req, res, next) {
-      if(!/\/partial\//.test(req.url)) return next()
-      req.url = req.url.substring('/partial'.length)
-      render(true, req, res, next)
-    },
-    //static files
-    function (req, res, next) {
-      if(/\/static\/[\w\d-_]+\.\w+/.test(req.url)) {
-        console.log("STATIC", req.url)
-        fs.createReadStream(path.join(__dirname, req.url)).pipe(res)
-      } else
-        next()
-    },
-    //mount coherence!
+    Emoji('/img/emoji'),
+    Static({
+      root: path.join(__dirname, 'static'), baseDir: '/static'
+    }),
     coherence
   )).listen(8005)
 })
+
 
