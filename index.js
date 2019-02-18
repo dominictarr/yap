@@ -1,14 +1,14 @@
-var fs = require('fs')
-var path = require('path')
-var nested = require('libnested')
+var fs     = require('fs')
+var path   = require('path')
+var ref    = require('ssb-ref')
 var Stack = require('stack')
-var URL = require('url')
-var QS = require('qs')
-var u = require('./util')
+
+//refactor to ditch these things
+var nested = require('libnested')
+var URL    = require('url')
+var QS     = require('qs')
+var u      = require('./util')
 var toHTML = u.toHTML
-var pull = require('pull-stream')
-var toPull = require('stream-to-pull-stream')
-var ref = require('ssb-ref')
 
 // middleware
 var Logger       = require('morgan')
@@ -18,35 +18,7 @@ var BodyParser   = require('urlencoded-request-parser')
 var FavIcon      = require('serve-favicon')
 var Coherence    = require('coherence-framework')
 
-var doctype = '<!DOCTYPE html \n  PUBLIC "-//W3C//DTD HTML 4.01//EN"\n  "http://www.w3.org/TR/html4/strict.dtd">'
-
 //actions may make writes to sbot, or can set things
-var actions = {
-  //note: opts is post body
-  identitySelect: function (opts, apply, req, cb) {
-    var context = req.cookies
-    context.id = opts.id
-    cb(null, opts, context)
-  },
-  preview: function (opts, apply, req, cb) {
-    cb(null, opts)
-  },
-  publish: function (opts, apply, req, cb) {
-    if(opts.content.recps === '')
-      delete opts.content.recps
-    else if('string' === typeof opts.content.recps) {
-      opts.content.recps = opts.content.recps.split(',')
-    }
-
-    if(Array.isArray(opts.content.recps))
-      opts.private = true
-
-    sbot.identities.publishAs(opts, function (err, msg) {
-      if(err) cb(err)
-      else cb()
-    })
-  }
-}
 
 require('ssb-client')(function (err, sbot) {
   if(err) throw err
@@ -69,6 +41,45 @@ require('ssb-client')(function (err, sbot) {
     .use('friends',        require('./apis/friends')(sbot))
     .use('search',         require('./apis/search')(sbot))
     .use('mentions',       require('./apis/mentions')(sbot))
+
+  var actions = {
+    //note: opts is post body
+
+    //sets id in cookie
+    identitySelect: function (opts, req, cb) {
+      var context = req.cookies
+      context.id = opts.id
+      cb(null, null, context)
+    },
+
+    //sets id in cookie
+    languageSelect: function (opts, req, cb) {
+      throw new Error('not implemented yet')
+    },
+
+    //theme, in cookie
+
+    //renders immediately
+//    preview: function (opts, req, cb) {
+//      cb(null, opts)
+//    },
+
+    publish: function (opts, req, cb) {
+      if(opts.content.recps === '')
+        delete opts.content.recps
+      else if('string' === typeof opts.content.recps) {
+        opts.content.recps = opts.content.recps.split(',')
+      }
+
+      if(Array.isArray(opts.content.recps))
+        opts.private = true
+
+      sbot.identities.publishAs(opts, function (err, msg) {
+        if(err) cb(err)
+        else cb()
+      })
+    }
+  }
 
   require('http').createServer(Stack(
     Logger(),
@@ -97,22 +108,26 @@ require('ssb-client')(function (err, sbot) {
       if(req.method == 'GET') return next()
       var id = req.cookies.id || sbot.id
       var opts = req.body
-      function callApi (path, opts) {
-        try {
-          var fn = nested.get(apis, path)
-          if(!fn) return next()
-          return fn(opts, apply, req)
-        } catch(err) {
-          next(err)
-        }
-      }
+//      function callApi (path, opts) {
+//        try {
+//          var fn = nested.get(apis, path)
+//          if(!fn) return next()
+//          return fn(opts, apply, req)
+//        } catch(err) {
+//          next(err)
+//        }
+//      }
+
+      // handle preview specially, (to confirm a message)
+      // 
+
       if(opts.type === 'preview') {
         //  TODO: pass opts.id in, and wether this message
         //  preview should allow recipient selection, or changing id.
         //  api.preview can set the shape of the message if it likes.
 
         req.url = '/preview?'+QS.stringify(opts)
-        coherence(req, res, next)
+        return coherence(req, res, next)
 
         //XXX this isn't working
 
@@ -120,24 +135,25 @@ require('ssb-client')(function (err, sbot) {
 //          if(err) next(err)
 //          else res.end('<!DOCTYPE html>'+result.outerHTML)
 //        })
-        return
+//        return
       }
-      actions[opts.type](opts, null, req, function (err, _opts, context) {
+      actions[opts.type](opts, req, function (err, _opts, context) {
         if(err) return next(err)
         if(context) {
           req.cookies = context
           res.setHeader('set-Cookie', QS.stringify(context))
         }
         /*
-          after handling the post,
-          redirect to a normal page.
-          this is a work around for if you hit refresh
+          After handling the post, redirect to a normal page.
+          This is a work around for if you hit refresh
           and the browser wants to resubmit the POST.
 
           I think we want to do this for most types,
           exception is for preview - in which we return
           the same data rendered differently and don't write
           to DB at all.
+
+          Should preview be implemented like this too?
         */
         res.setHeader('location', req.url)
         res.writeHead(303)
@@ -152,5 +168,7 @@ require('ssb-client')(function (err, sbot) {
     coherence
   )).listen(8005)
 })
+
+
 
 
