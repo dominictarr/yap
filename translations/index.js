@@ -18,7 +18,9 @@ var langs = {
     SelfRecipients: 'Note to Self',
     SelfAndRecipients: 'Self and',
     ThreadRecipients: 'In this thread:',
-    Like: 'Yup'
+    Like: 'Yup',
+    Search: 'Search',
+    Go: 'go'
   }
 }
 

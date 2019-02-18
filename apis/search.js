@@ -2,7 +2,7 @@ var pull = require('pull-stream')
 var ref = require('ssb-ref')
 
 module.exports = function (sbot) {
-  return function (opts, apply) {
+  return function (opts, apply, req) {
     var tr = require('../translations')(req.cookies.lang)
     opts.limit = opts.limit || 10
     if(ref.isMsgLink(opts.query))
@@ -36,4 +36,5 @@ module.exports = function (sbot) {
     )
   }
 }
+
 
