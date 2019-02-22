@@ -44,6 +44,14 @@ currently only threads and posts are checked. feeds - which tend
 to be _ranges_ arn't checked. I am still figuring out a good way
 to update these.
 
+## plugins
+
+this code requires the following plugins
+
+* ssb-identities (allows switching identities)
+* ssb-names (handles avatar names)
+* ssb-search (full text search)
+
 ## known bugs
 
 * reupdating the page can wipe partially written responses (!!!)
