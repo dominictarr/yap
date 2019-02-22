@@ -59,11 +59,6 @@ require('ssb-client')(function (err, sbot) {
 
     //theme, in cookie
 
-    //renders immediately
-//    preview: function (opts, req, cb) {
-//      cb(null, opts)
-//    },
-
     publish: function (opts, req, cb) {
       if(opts.content.recps === '')
         delete opts.content.recps
@@ -108,18 +103,8 @@ require('ssb-client')(function (err, sbot) {
       if(req.method == 'GET') return next()
       var id = req.cookies.id || sbot.id
       var opts = req.body
-//      function callApi (path, opts) {
-//        try {
-//          var fn = nested.get(apis, path)
-//          if(!fn) return next()
-//          return fn(opts, apply, req)
-//        } catch(err) {
-//          next(err)
-//        }
-//      }
 
       // handle preview specially, (to confirm a message)
-      // 
 
       if(opts.type === 'preview') {
         //  TODO: pass opts.id in, and wether this message
@@ -128,14 +113,6 @@ require('ssb-client')(function (err, sbot) {
 
         req.url = '/preview?'+QS.stringify(opts)
         return coherence(req, res, next)
-
-        //XXX this isn't working
-
-//        toHTML(layout.call(self, callApi(['preview'], opts))) (function (err, result) {
-//          if(err) next(err)
-//          else res.end('<!DOCTYPE html>'+result.outerHTML)
-//        })
-//        return
       }
       actions[opts.type](opts, req, function (err, _opts, context) {
         if(err) return next(err)
@@ -166,9 +143,17 @@ require('ssb-client')(function (err, sbot) {
       root: path.join(__dirname, 'static'), baseDir: '/static'
     }),
     coherence
-  )).listen(8005)
+  )).listen(8005, 'localhost')
+
+  /*
+    generic ssb invalidation
+    if a message links to another, invalidate the other key.
+    (this will get threads, likes, etc)
+    if a message links to a feed, invalidate the feed.
+
+    that doesn't cover follows though... but maybe that can be invalidated
+    as one thing?
+  */
 })
-
-
 
 
