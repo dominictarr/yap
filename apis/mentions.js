@@ -20,9 +20,9 @@ module.exports = function (sbot) {
           return '['+[].join.call(arguments, '][')+']'
         }
 
-
         cb(null, [
-          mentions.map(function (opts) { return apply('avatar', opts) }),
+          mentions.filter(function (e) { return e.link })
+            .map(function (opts) { return apply('avatar', opts) }),
           u.createHiddenInputs({mentions: mentions}, 'content'),
           ambigious.map(function (e, i) {
             return [
@@ -47,4 +47,10 @@ module.exports = function (sbot) {
     }
   }
 }
+
+
+
+
+
+
 
