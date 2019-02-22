@@ -57,7 +57,6 @@ function lookup (sbot, name, cb) {
         cb(null, first.id)
       else
         cb(null, null, names)
-      cb(null, mention)
     }
   })
 }
@@ -68,9 +67,11 @@ module.exports = function (sbot, text, cb) {
     if(mention.name && mention.link === false) {
       n++
       lookup(sbot, mention.name, function (err,  link, names) {
-        if(err) next(err)
+        if(err) return next(err)
+
         if(link) mention.link = link
         else ambigious.push(names)
+
         next()
       })
     }
@@ -91,10 +92,13 @@ module.exports = function (sbot, text, cb) {
 if(!module.parent)
   require('ssb-client')(function (err, sbot) {
     if(err) throw err
-    module.exports(sbot, process.argv[2], function (err, data) {
+    module.exports(sbot, process.argv[2], function (err, data, ambigious) {
+      if(err) throw err
       console.log(JSON.stringify(data, null, 2))
+      console.log(JSON.stringify(ambigious, null, 2))
       sbot.close()
     })
   })
+
 
 
