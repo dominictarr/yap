@@ -3,7 +3,7 @@ var paramap = require('pull-paramap')
 var msum = require('markdown-summary')
 var sort = require('ssb-sort')
 var u = require('../util')
-var Append = require('../../pull-append')
+var Append = require('pull-append')
 
 function getThread(sbot, id, cb) {
   sbot.get({id:id, private: true}, function (err, msg) {
