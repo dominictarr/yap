@@ -1,5 +1,5 @@
 var URL = require('url')
-var QS = require('querystring')
+var QS = require('qs')
 var hyperscript = require('hyperscript')
 var cpara = require('cont').para
 var pull = require('pull-stream')
@@ -23,12 +23,36 @@ function isString (s) {
   return 'string' === typeof s
 }
 
+function cleanOpts (opts) {
+  return (function copy (opts) {
+    var o = undefined
+    if(opts && 'object' === typeof opts)
+      for(var k in opts) {
+        if('undefined' !== typeof opts[k]) {
+          var v = copy(opts[k])
+          if('undefined' !== typeof v) {
+            o = o || {}
+            o[k] = v
+          }
+        }
+      }
+    else
+      return opts //a string, or other value
+    return o
+  })(opts)
+}
+
+function encodeOpts (opts) {
+  opts = cleanOpts(opts)
+  return opts ? '?'+QS.stringify(opts) : ''
+}
+
+exports.cleanOpts = cleanOpts
+
 exports.toUrl = function toUrl(path, opts) {
   return '/'+(
     Array.isArray(path) ? path.join('/') : ''+path
-  ) + (
-    !isEmpty(opts) ? '?'+QS.encode(opts) : ''
-  )
+  ) + encodeOpts(opts)
 }
 exports.h = function () {
   return [].slice.call(arguments)
@@ -216,6 +240,13 @@ exports.createRenderer = function (render) {
     }
   }
 }
+
+
+
+
+
+
+
 
 
 
