@@ -33,7 +33,8 @@ function cleanRange (_o) {
 }
 
 module.exports = function (sbot) {
-  return function (opts, apply) {
+  return function (opts, apply, req) {
+    var tr = require('../translations')(req.cookies.lang)
     var self = this
     opts.reverse = opts.reverse !== false
   //  var min = !isNaN(+opts.lt) ? +opts.lt : Date.now()
@@ -84,7 +85,6 @@ module.exports = function (sbot) {
               nav_opts.author = opts.author
 
             var nav = ['span',
-              '<< ',
               opts.author ?
                 apply('avatar', {
                   id: opts.author,
@@ -99,7 +99,8 @@ module.exports = function (sbot) {
                   })),
                   title: new Date(max).toString()
                 },
-              niceAgo(Date.now(), max)
+                '<< ',
+                niceAgo(Date.now(), max)
               ], ' + ',
               ['a', {
                   href: toUrl(type, merge(nav_opts, {
@@ -107,8 +108,17 @@ module.exports = function (sbot) {
                   })),
                   title: new Date(max).toString()
                 },
-                niceAgo(Date.now(), min)],
-              ' >>'
+                niceAgo(Date.now(), min),
+                ' >>'
+              ],
+              ' ',
+              ['a',
+                {
+                  href: toUrl('compose', {private: opts.private, content: {channel: opts.channel}}),
+                  title: new Date(max).toString()
+                },
+                tr('Compose')
+              ]
             ]
             ary.unshift(nav)
             ary.push(nav)
@@ -126,3 +136,4 @@ module.exports = function (sbot) {
       }
   }
 }
+
