@@ -7,11 +7,12 @@ module.exports = function (sbot) {
   return function (opts, apply, req) {
     var context = req.cookies
     var id = opts.id
-    var meta = opts.meta || opts.content
+    var content = opts.meta || opts.content || {}
+    content.type = content.type || 'post'
     var tr = Translations(context.lang)
     return apply('publish', {
       id: opts.id,
-      content: opts.meta || opts.content,
+      content: content,
       inputs:
         ['textarea', {name: 'content[text]'}],
       name: tr('Preview')
