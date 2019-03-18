@@ -86,6 +86,10 @@ module.exports = function (sbot) {
           cb(null, apply('message', data)) //just show one message
         else
           getThread(sbot, opts.id, function (err, ary) {
+            var root = opts.id
+            var branch = sort.heads(ary)
+            var recps = uniqueRecps(ary[0].value.content.recps)
+
             ary.unshift(data)
             var o = {}, cacheTime
             ary = ary.filter(function (e) {
@@ -119,19 +123,20 @@ module.exports = function (sbot) {
                               suggestedRecps: data.value.author,
                               content: {
                                 type: 'vote',
+                                root: root, branch: branch,
                                 vote: {
                                   link:data.key, value: 1,
                                   expression: expression
                                 },
-                                channel: data.value.content.channel
+                                channel: data.value.content.channel,
+                                recps: recps
                               },
                               name: expression + ' ' + (likes.length ? '('+likes.length+')' : '')
                             }),
                             (backlinks.length ?
                             ['ul.MessageBacklinks',
                               backlinks.map(function (e) {
-                                return ['li',
-                                  apply('avatar', {id:e.value.author}),
+                                return ['li',                                  apply('avatar', {id:e.value.author}),
                                   ' ',
                                   apply('messageLink', e),
                                   ' ',
@@ -148,9 +153,10 @@ module.exports = function (sbot) {
                 apply('compose', {
                   content: {
                     type: 'post',
-                    root: opts.id,
-                    recps: uniqueRecps(ary[0].value.content.recps),
-                    branch: sort.heads(ary)
+                    root: root,
+                    recps: recps,
+                    branch: branch,
+                    channel: ary[0].value.content.channel
                   }
                 })
               )
@@ -160,4 +166,7 @@ module.exports = function (sbot) {
     }
   }
 }
+
+
+
 
