@@ -87,6 +87,7 @@ module.exports = function (sbot) {
         else
           getThread(sbot, opts.id, function (err, ary) {
             var root = opts.id
+            ary = [data].concat(ary || [])
             var branch = sort.heads(ary)
             var recps = uniqueRecps(ary[0].value.content.recps)
 
@@ -166,6 +167,7 @@ module.exports = function (sbot) {
     }
   }
 }
+
 
 
 
