@@ -16,6 +16,9 @@ module.exports = function (sbot) {
         ['input', { name: 'id', value: id, type: 'hidden'}] :
         apply('identitySelect', {restrict: content.recps, main: false})
       ),
+      (
+        opts.private ? ['input', { name: 'private', value: 'true', type: 'hidden'}] : ''
+      ),
   //    opts.suggestedRecps ? api('suggestedRecipients', {suggestedRecps: opts.suggestedRecps, content: content}) : '',
       //root + branch. not shown in interface.
       u.createHiddenInputs(content, 'content'),
@@ -25,6 +28,9 @@ module.exports = function (sbot) {
     ]
   }
 }
+
+
+
 
 
 
