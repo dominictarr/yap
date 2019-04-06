@@ -81,8 +81,9 @@ module.exports = function (sbot) {
               return apply('message', data)
             })
             var nav_opts = {}
-            if(opts.author)
-              nav_opts.author = opts.author
+            if(opts.author) nav_opts.author = opts.author
+            if(opts.channel) nav_opts.channel = opts.channel
+            if(opts.private) nav_opts.private = opts.private
 
             var nav = ['span',
               opts.author ?
@@ -94,18 +95,14 @@ module.exports = function (sbot) {
                 }): '',
               ' ',
               ['a', {
-                  href: toUrl(type, Object.assign({}, nav_opts, {
-                    gt: max
-                  })),
+                  href: toUrl(type, Object.assign({}, nav_opts, { gt: max })),
                   title: new Date(max).toString()
                 },
                 '<< ',
                 niceAgo(Date.now(), max)
               ], ' + ',
               ['a', {
-                  href: toUrl(type, merge(nav_opts, {
-                    lt: min
-                  })),
+                  href: toUrl(type, merge(nav_opts, { lt: min })),
                   title: new Date(max).toString()
                 },
                 niceAgo(Date.now(), min),
