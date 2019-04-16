@@ -36,6 +36,7 @@ module.exports = function (sbot) {
         // include anyone.... TODO that
 
         ['input', {type: 'hidden', name: 'id', value: data.value.author}],
+        opts.private ?  ['input', {type: 'hidden', name: 'private', value: data.value.author}] : '',
         apply('message', data),
         u.createHiddenInputs(data.value.content, 'content'),
         apply('mentions', data.value.content),
@@ -48,7 +49,4 @@ module.exports = function (sbot) {
     //submit takes you to back to the thread page.
   }
 }
-
-
-
 
