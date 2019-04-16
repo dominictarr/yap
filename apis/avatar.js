@@ -3,7 +3,7 @@ var h = require('../util').h
 var toUrl = require('../util').toUrl
 
 module.exports = function (sbot) {
-  return function (opts) {
+  return function (opts, apply) {
     //accept feed directly, so you can do map(api.avatar)
     if(ref.isFeed(opts))
       opts = {id: opts}
@@ -22,7 +22,11 @@ module.exports = function (sbot) {
       sbot.names.getImageFor(opts.id, function (err, blobId) {
         sbot.names.getSignifier(opts.id, function (err, name) {
           cb(null,
-            h('a.Avatar', {href: opts.href || toUrl('public', {author:opts.id})},
+            h('a.Avatar',
+              Object.assign(
+                {href: opts.href || toUrl('public', {author:opts.id})},
+                apply.cacheAttrs(toUrl('avatar', opts), opts.id)
+              ),
               _image ? h('img', {
                 className:'avatar',
                 src: '/blobs/get/'+blobId,
