@@ -1,7 +1,7 @@
 var fs     = require('fs')
 var path   = require('path')
 var ref    = require('ssb-ref')
-var Stack = require('stack')
+var Stack  = require('stack')
 
 //refactor to ditch these things
 var nested = require('libnested')
@@ -10,6 +10,7 @@ var URL    = require('url')
 var QS     = require('qs')
 var u      = require('./util')
 var toHTML = u.toHTML
+var uniq   = require('lodash.uniq')
 
 // middleware
 var Logger       = require('morgan')
@@ -57,7 +58,6 @@ require('ssb-client')(function (err, sbot) {
     .use('messages/post',  require('./apis/messages/post')(sbot))
     .use('messages/vote',  require('./apis/messages/vote')(sbot))
 
-
   var actions = {
     //note: opts is post body
 
@@ -84,6 +84,14 @@ require('ssb-client')(function (err, sbot) {
 
       if(Array.isArray(opts.content.recps))
         opts.private = true
+      else if(opts.private && !opts.content.recps) {
+        opts.content.recps = uniq(
+          [opts.id]
+          .concat(opts.content.mentions || [])
+          .map(function (e) { return ref.isFeed(e) ? e : ref.isFeed(e.link) ? e.link : null })
+          .filter(Boolean)
+        )
+      }
 
       sbot.identities.publishAs(opts, function (err, msg) {
         if(err) cb(err)
@@ -185,5 +193,6 @@ require('ssb-client')(function (err, sbot) {
       })
     )
 })
+
 
 
