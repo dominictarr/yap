@@ -30,6 +30,7 @@
     "ssb-ws": "^5.1.1",
     "urlencoded-request-parser": "^1.0.1"
   },
+  "bin": "./index.js",
   "devDependencies": {
     "tape": "^4.10.1"
   },
