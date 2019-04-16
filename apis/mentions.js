@@ -19,7 +19,6 @@ module.exports = function (sbot) {
         function toPath () {
           return '['+[].join.call(arguments, '][')+']'
         }
-        console.log(mentions)
         cb(null, [
           mentions.filter(function (e) { return e.link })
             .map(function (opts) { return apply('avatar', opts) }),
