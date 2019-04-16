@@ -1,6 +1,7 @@
 var u = require('../util')
 var explain = require('explain-error')
 var getMentions = require('../mentions')
+var ref = require('ssb-ref')
 
 module.exports = function (sbot) {
   return function (opts, apply) {
@@ -20,7 +21,7 @@ module.exports = function (sbot) {
           return '['+[].join.call(arguments, '][')+']'
         }
         cb(null, [
-          mentions.filter(function (e) { return e.link })
+          mentions.filter(function (e) { return ref.isFeed(e.link) })
             .map(function (opts) { return apply('avatar', opts) }),
           u.createHiddenInputs({mentions: mentions}, 'content'),
           ambigious.map(function (e, i) {
