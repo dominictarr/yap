@@ -13,6 +13,7 @@ module.exports = function (sbot) {
     return apply('publish', {
       id: opts.id,
       content: content,
+      private: opts.private,
       inputs:
         ['textarea', {name: 'content[text]'}],
       name: tr('Preview')

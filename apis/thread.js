@@ -106,7 +106,7 @@ module.exports = function (sbot) {
                   })]
             cb(null,
               h('div.thread',
-                u.cacheTag(apply.toUrl('thread', opts), data.key, since),
+                apply.cacheAttrs(apply.toUrl('thread', opts), data.key, since),
                 ary[0].value.content.text && h('title', msum.title(ary[0].value.content.text)),
                 recipients,
                 h('form', {name: 'publish', method: 'POST'},
@@ -167,6 +167,9 @@ module.exports = function (sbot) {
     }
   }
 }
+
+
+
 
 
 

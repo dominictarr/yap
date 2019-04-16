@@ -94,13 +94,17 @@ module.exports = function (sbot) {
                   href: toUrl('friends', {id: opts.author})
                 }): '',
               ' ',
+
+              //load previous from a url, so that it can be updated by coherence
               ['a', {
                   href: toUrl(type, Object.assign({}, nav_opts, { gt: max })),
                   title: new Date(max).toString()
                 },
                 '<< ',
                 niceAgo(Date.now(), max)
-              ], ' + ',
+              ],
+
+              ' + ',
               ['a', {
                   href: toUrl(type, merge(nav_opts, { lt: min })),
                   title: new Date(max).toString()

@@ -28,10 +28,9 @@ function getThread(sbot, id, cb) {
   })
 }
 
-module.exports = function (opts) {
+module.exports = function (sbot) {
+  return function (opts, apply) {
   var self = this
-  var sbot = this.sbot
-  var api = this.api
   var seen = {}
   var max
   var min = max = !isNaN(+opts.lt) ? +opts.lt : Date.now()
@@ -66,7 +65,8 @@ module.exports = function (opts) {
           if(err) return cb(err)
           var authors = thread.map(function (e) {
             return e.value.author
-          }).reduce(function (seen, author) {
+          })
+          .reduce(function (seen, author) {
             if(!~seen.indexOf(author)) seen.push(author)
             return seen
           }, [])
@@ -76,9 +76,11 @@ module.exports = function (opts) {
             return cb()
 
           var content = thread[0].value.content
+          if(!content.text) return cb() //skip threads that don't have content
+
           cb(null, ['div.Thread',
             ['div.Authors', authors.map(function (e) {
-              return api('avatar', {id:e})
+              return apply('avatar', {id:e})
             })],
             ['a',
               {href: u.toUrl('thread', {id: root})},
@@ -101,5 +103,8 @@ module.exports = function (opts) {
     )
   ]
 }
+
+}
+
 
 
