@@ -180,7 +180,7 @@ require('ssb-client')(function (err, sbot) {
   */
 
     pull(
-      sbot.createLogStream({live: true, old: false, sync: false}),
+      sbot.createLogStream({live: true, old: false, sync: false, private: true}),
       pull.drain(function (data) {
         nested.each(data.value.content, function (v) {
           if(ref.isMsg(v))
@@ -193,6 +193,7 @@ require('ssb-client')(function (err, sbot) {
       })
     )
 })
+
 
 
 
