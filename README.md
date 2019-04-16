@@ -25,7 +25,7 @@ or avatar includes within it the metadata to update it:
 >
 ```
 
-the link element is the first child of the element it updates.
+The link element is the first child of the element it updates.
 href is the url to call to render this element. It's actually called
 as `"/partial/"+href`, which tells the backend not to send layout top level
 html.
