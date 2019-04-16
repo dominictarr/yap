@@ -1,7 +1,7 @@
 {
   "name": "yap-app",
   "description": "Yet Another Patchwork client",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "homepage": "https://github.com/dominictarr/yap",
   "repository": {
     "type": "git",
