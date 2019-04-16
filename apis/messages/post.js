@@ -10,7 +10,7 @@ module.exports = u.createRenderer(function render (data, apply) {
   var since = apply.since
   var time = data.value.timestamp || data.timestamp
   return ['div.Message',
-    u.cacheAttrs(toUrl('message', {id: data.key}), data.key, since),
+    apply.cacheAttrs(toUrl('message', {id: data.key}), data.key, since),
     ['div.MessageSide',
       apply('avatar', {id: data.value.author, name: false, image: true}),
       h('a', {
