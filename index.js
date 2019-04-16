@@ -57,12 +57,6 @@ require('ssb-client')(function (err, sbot) {
     .use('messages/post',  require('./apis/messages/post')(sbot))
     .use('messages/vote',  require('./apis/messages/vote')(sbot))
 
-    //inbox
-    .use('inbox',          require('./apis/inbox')(sbot))
-
-    //notifications
-    .use('notifications',  require('../yap-notifications')(sbot))
-    .use('notifications_/thread',  require('../yap-notifications/thread-compact')(sbot))
 
   var actions = {
     //note: opts is post body
@@ -191,4 +185,5 @@ require('ssb-client')(function (err, sbot) {
       })
     )
 })
+
 
