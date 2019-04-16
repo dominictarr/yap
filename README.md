@@ -8,6 +8,15 @@ or invalidation based lightweight front ends.
 see also:
   * [the state of yap](https://en.wikipedia.org/wiki/Yap)
 
+## how to run
+
+`npm i`
+
+`node index.js`
+
+Navigate to `http://localhost:8005/public`
+
+
 ## architecture
 
 The idea here is to create a traditional http/html only app,
