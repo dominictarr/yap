@@ -5,6 +5,7 @@ var Stack = require('stack')
 
 //refactor to ditch these things
 var nested = require('libnested')
+var pull   = require('pull-stream')
 var URL    = require('url')
 var QS     = require('qs')
 var u      = require('./util')
@@ -24,23 +25,44 @@ require('ssb-client')(function (err, sbot) {
   if(err) throw err
 
   var coherence = Coherence(require('./layout'))
+
+    //core: render an avatar, select 
     .use('avatar',         require('./apis/avatar')(sbot))
     .use('identitySelect', require('./apis/identity-select')(sbot))
-    .use('public',         require('./apis/public')(sbot))
-    .use('private',        require('./apis/private')(sbot))
-    .use('message',        require('./apis/message')(sbot))
+    //called by preview (to clarify who you are mentioning)
+    .use('mentions',       require('./apis/mentions')(sbot))
+
     .use('messageLink',    require('./apis/message-link')(sbot))
     .use('channelLink',    require('./apis/channel-link')(sbot))
-    .use('messages/post',  require('./apis/messages/post')(sbot))
-    .use('messages/vote',  require('./apis/messages/vote')(sbot))
+
+    //render a single message
+    .use('message',        require('./apis/message')(sbot))
+
+    //show how much things there are to do...
     .use('progress',       require('./apis/progress')(sbot))
-    .use('thread',         require('./apis/thread')(sbot))
+
+    //core message writing...
+    .use('preview',        require('./apis/preview')(sbot))
     .use('compose',        require('./apis/compose')(sbot))
     .use('publish',        require('./apis/publish')(sbot))
-    .use('preview',        require('./apis/preview')(sbot))
+
+    //view (and filtered views) on the raw log
+    .use('public',         require('./apis/public')(sbot))
+    .use('private',        require('./apis/private')(sbot))
     .use('friends',        require('./apis/friends')(sbot))
     .use('search',         require('./apis/search')(sbot))
-    .use('mentions',       require('./apis/mentions')(sbot))
+
+    //patchthreads
+    .use('thread',         require('./apis/thread')(sbot))
+    .use('messages/post',  require('./apis/messages/post')(sbot))
+    .use('messages/vote',  require('./apis/messages/vote')(sbot))
+
+    //inbox
+    .use('inbox',          require('./apis/inbox')(sbot))
+
+    //notifications
+    .use('notifications',  require('../yap-notifications')(sbot))
+    .use('notifications_/thread',  require('../yap-notifications/thread-compact')(sbot))
 
   var actions = {
     //note: opts is post body
@@ -154,6 +176,19 @@ require('ssb-client')(function (err, sbot) {
     that doesn't cover follows though... but maybe that can be invalidated
     as one thing?
   */
-})
 
+    pull(
+      sbot.createLogStream({live: true, old: false, sync: false}),
+      pull.drain(function (data) {
+        nested.each(data.value.content, function (v) {
+          if(ref.isMsg(v))
+            coherence.invalidate(v, data.ts)
+          else if(ref.isFeed(v)) {
+            coherence.invalidate('in:'+v, data.ts)
+            coherence.invalidate('out:'+data.value.author, data.ts)
+          }
+        })
+      })
+    )
+})
 
