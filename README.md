@@ -81,7 +81,7 @@ implement these all as independent routes
 * set name
 * set images
 * upload/link blob
-* start new thread
+* start new thread - done
 * follow / unfollow / block / unblock
 * gathering
 * scry (meeting)
