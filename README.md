@@ -3,55 +3,35 @@
 _yet another_ approach to writing patchapps.
 
 Intended for server side html rendering (like patchfoo)
-or invalidation based lightweight front ends.
+with invalidation based lightweight front ends.
+
+Should also work without javascript! Please post an issue if something does not work
+in your prefurred browser!
 
 see also:
   * [the state of yap](https://en.wikipedia.org/wiki/Yap)
 
-## how to run
-
-`npm i`
-
-`node index.js`
-
-Navigate to `http://localhost:8005/public`
-
-
-## architecture
-
-The idea here is to create a traditional http/html only app,
-but then supercharge it with _cache invalidation_, to give
-the feel of a live updating realtime single page js app.
-The trick is simple: each rendered element, say a post, thread,
-or avatar includes within it the metadata to update it:
+## how to run - git clone
 
 ```
-<link
-  rel="partial-refresh"
-  href="/message?id=%25sXODvWtsqedx9%2F%2Fesx67pbo79uF3X4mgGinkUBfRnaE%3D.sha256"
-  id="_b17383bd6b6ca9e7"
-  data-cache="524883383"
->
+# from git-ssb
+git clone ssb://%s5UpM/TdwP+Qr2gMgzlAQ/TTBBkKz0gJKlyW7fxGPbk=.sha256 yap
+# from github
+git clone https://github.com/dominictarr/yap
+
+# install
+cd yap
+npm install
+# and run
+node index.js
 ```
 
-The link element is the first child of the element it updates.
-href is the url to call to render this element. It's actually called
-as `"/partial/"+href`, which tells the backend not to send layout top level
-html.
+Navigate to `http://localhost:8005/public` with your favorite web browser (I mostly use firefox,
+please post an issue if your browser doesn't work)
 
-the `id` and `data-cache` attributes are used to check wether
-the cache for this element is correct. The client sends a request
-to the server and asks if `"_b17383bd6b6ca9e7": 524883383` is still correct.
-If the server says it isn't, then the client rerequests this element,
-and updates the page. If it is still current, the client does nothing.
+## cache coherence
 
-Currently, the client javascript checks if something is still up to date
-when you return to that page after being away for a while. (todo: check
-periodically when away from the page)
-
-currently only threads and posts are checked. feeds - which tend
-to be _ranges_ arn't checked. I am still figuring out a good way
-to update these.
+This application is based on the [coherence framework](https://github.com/dominictarr/coherence)
 
 ## plugins
 
@@ -105,6 +85,7 @@ implement these all as independent routes
 * translations
 * attach file
 * set name/image on avatar
+
 
 
 
