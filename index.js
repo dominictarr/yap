@@ -25,7 +25,10 @@ var Coherence    = require('coherence-framework')
 
 require('ssb-client')(function (err, sbot) {
   if(err) throw err
+  sbot.identities.main(function (err, id) {
+    sbot.id = id
 
+  if(!sbot.id) throw new Error('sbot id missing')
   var coherence = Coherence(require('./layout'))
 
     //core: render an avatar, select 
@@ -194,7 +197,7 @@ require('ssb-client')(function (err, sbot) {
         })
       })
     )
-})
+})})
 
 
 
