@@ -12,8 +12,7 @@ module.exports = function (sbot) {
     var _image = opts.image !== false //defaults to true
     var _name = opts.name === true //defaults to false
 
-    if(!opts.id) throw new Error('missing id')
-
+    if(!opts.id) throw new Error('missing id, had:'+JSON.stringify(opts))
 
     return function (cb) {
       if(!ref.isFeed(opts.id))
