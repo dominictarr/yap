@@ -20,6 +20,11 @@ function hasRange(o, key) {
   return Object.hasOwnProperty.call(o, key) && !isNaN(o[key])
 }
 
+function isEmpty (o) {
+  for(var k in o) return false
+  return true
+}
+
 function cleanRange (_o) {
   var o = {}
 
@@ -28,6 +33,10 @@ function cleanRange (_o) {
 
   if     (hasRange(_o, 'lt'))  o.$lt  = +_o.lt
   else if(hasRange(_o, 'lte')) o.$lte = +_o.lte
+
+
+  if(isEmpty(o))
+    o.$lte = Date.now()
 
   return o
 }
@@ -52,8 +61,7 @@ module.exports = function (sbot) {
         //where something isn't included in the query but
         //is in the since.
         var since = self.since
-        pull(
-          sbot.query.read({
+        var _opts = {
             query: [{$filter: {
               value: {
                 content: {
@@ -70,7 +78,10 @@ module.exports = function (sbot) {
               $sort: [['value', 'timestamp']]
             }*/],
             limit: 20, reverse: max ? false : true
-          }),
+          }
+        console.log(JSON.stringify(_opts))
+        pull(
+          sbot.query.read(_opts),
           pull.collect(function (err, ary) {
             if(err) return cb(err)
             ary = ary.sort(function (a, b) {
@@ -137,4 +148,8 @@ module.exports = function (sbot) {
       }
   }
 }
+
+
+
+
 
