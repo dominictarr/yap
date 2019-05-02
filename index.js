@@ -50,6 +50,7 @@ require('ssb-client')(function (err, sbot) {
 
     //view (and filtered views) on the raw log
     .use('public',         require('./apis/public')(sbot))
+    .use('more',         require('./apis/more')(sbot))
     .use('private',        require('./apis/private')(sbot))
     .use('friends',        require('./apis/friends')(sbot))
     .use('search',         require('./apis/search')(sbot))
@@ -194,6 +195,7 @@ require('ssb-client')(function (err, sbot) {
       })
     )
 })
+
 
 
 

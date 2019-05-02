@@ -137,13 +137,6 @@ var cacheId = exports.cacheId = function (id) {
   else
     return 'R'+id.lte+'-'+(id.lte - id.gte)
 }
-exports.cacheTag = function (url, id, time) {
-  if(time)
-    return ['link', {
-      rel: 'partial-refresh', href: url, id: cacheId(id), 'data-cache': ''+time
-    }]
-}
-
 
 function renderEmoji (emoji, url) {
   if (!url) return ':' + emoji + ':'
@@ -242,12 +235,48 @@ exports.createRenderer = function (render) {
 }
 
 
+function isEmpty (o) {
+  for(var k in o) return false
+  return true
+}
 
+function hasRange(o, key) {
+  return Object.hasOwnProperty.call(o, key) && !isNaN(o[key])
+}
 
+function cleanRange (_o) {
+  var o = {}
 
+  if     (hasRange(_o, 'gt'))  o.$gt  = +_o.gt
+  else if(hasRange(_o, 'gte')) o.$gte = +_o.gte
 
+  if     (hasRange(_o, 'lt'))  o.$lt  = +_o.lt
+  else if(hasRange(_o, 'lte')) o.$lte = +_o.lte
 
+  if(isEmpty(o))
+    o.$lte = Date.now()
 
+  return o
+}
 
+exports.createQuery = function (opts, options) {
+  return {
+    query: [{
+      $filter: {
+        value: {
+          content: {
+            type: 'post',
+            channel: opts.channel,
+          },
+          author: opts.author,
+          private: opts.private ? true : {$is: 'undefined'},
+          timestamp: cleanRange(opts),
+        },
+      }
+    }],
+    limit: options.limit || 20,
+    reverse: hasRange(opts, 'gt') || hasRange(opts, 'gte') ? false : true
+  }
+}
 
 

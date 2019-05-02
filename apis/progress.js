@@ -14,7 +14,7 @@ function rate (prog) {
 }
 
 module.exports = function (sbot) {
-  return function () {
+  return function (opts, apply) {
     return function (cb) {
       sbot.progress(function (err, prog) {
         var s = '', r = 1
@@ -24,12 +24,15 @@ module.exports = function (sbot) {
             r = Math.min(r, _r)
             s += (s ? ', ' : '') + k +': ' + percent(r)
           }
-        cb(null, ['progress', {value: r, max: 1, title: s}, 
-          u.cacheTag('/progress', 'prog', Date.now() + 1000)
+        cb(null, ['progress', Object.assign(
+            {value: r, max: 1, title: s},
+            apply.cacheAttrs('/progress', 'prog')
+          )
         ])
       })
     }
   }
 }
+
 
 

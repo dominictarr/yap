@@ -16,36 +16,11 @@ function merge() {
   return Object.assign.apply(null, [{}].concat([].slice.call(arguments)))
 }
 
-function hasRange(o, key) {
-  return Object.hasOwnProperty.call(o, key) && !isNaN(o[key])
-}
-
-function isEmpty (o) {
-  for(var k in o) return false
-  return true
-}
-
-function cleanRange (_o) {
-  var o = {}
-
-  if     (hasRange(_o, 'gt'))  o.$gt  = +_o.gt
-  else if(hasRange(_o, 'gte')) o.$gte = +_o.gte
-
-  if     (hasRange(_o, 'lt'))  o.$lt  = +_o.lt
-  else if(hasRange(_o, 'lte')) o.$lte = +_o.lte
-
-
-  if(isEmpty(o))
-    o.$lte = Date.now()
-
-  return o
-}
-
 module.exports = function (sbot) {
   return function (opts, apply, req) {
     var tr = require('../translations')(req.cookies.lang)
     var self = this
-    opts.reverse = opts.reverse !== false
+    opts.reverse = opts.reverse != 'false'
   //  var min = !isNaN(+opts.lt) ? +opts.lt : Date.now()
   //  var max = !isNaN(+opts.gt) ? +opts.gt : 0
 
@@ -61,25 +36,8 @@ module.exports = function (sbot) {
         //where something isn't included in the query but
         //is in the since.
         var since = self.since
-        var _opts = {
-            query: [{$filter: {
-              value: {
-                content: {
-                  type: 'post',
-                  channel: opts.channel,
-                },
-                author: opts.author,
-                private: opts.private ? true : {$is: 'undefined'},
-                timestamp: cleanRange(opts),
-
-   //max ? {$gt: max} : min ? {$lt: min} : undefined
-              },
-            }}/*, {
-              $sort: [['value', 'timestamp']]
-            }*/],
-            limit: 20, reverse: max ? false : true
-          }
-        console.log(JSON.stringify(_opts))
+        var _opts = u.createQuery(opts, {limit: 20, reverse: opts.reverse})
+        console.log(_opts)
         pull(
           sbot.query.read(_opts),
           pull.collect(function (err, ary) {
@@ -95,7 +53,7 @@ module.exports = function (sbot) {
             if(opts.author) nav_opts.author = opts.author
             if(opts.channel) nav_opts.channel = opts.channel
             if(opts.private) nav_opts.private = opts.private
-
+            
             var nav = ['span',
               opts.author ?
                 apply('avatar', {
@@ -107,23 +65,17 @@ module.exports = function (sbot) {
               ' ',
 
               //load previous from a url, so that it can be updated by coherence
-              ['a', {
-                  href: toUrl(type, Object.assign({}, nav_opts, { gt: max })),
-                  title: new Date(max).toString()
-                },
-                '<< ',
-                niceAgo(Date.now(), max)
-              ],
-
+              apply('more', Object.assign({
+                href: toUrl(type, Object.assign({}, nav_opts, { gt: max })),
+                label: '<< '+ niceAgo(Date.now(), max),
+                title: 'after '+ new Date(max).toString()
+              }, nav_opts, {gt: max })),
               ' + ',
-              ['a', {
-                  href: toUrl(type, merge(nav_opts, { lt: min })),
-                  title: new Date(max).toString()
-                },
-                niceAgo(Date.now(), min),
-                ' >>'
-              ],
-              ' ',
+              apply('more', Object.assign({
+                href: toUrl(type, Object.assign({}, nav_opts, { lt: min })),
+                label: niceAgo(Date.now(), min) + ' >>',
+                title: 'before '+ new Date(min).toString()
+              }, nav_opts, {lt: min })),              ' ',
               ['a',
                 {
                   href: toUrl('compose', {private: opts.private, content: {channel: opts.channel}}),
@@ -135,11 +87,6 @@ module.exports = function (sbot) {
             ary.unshift(nav)
             ary.push(nav)
             cb(null, h('div.' + Type,
-              u.cacheTag(
-                toUrl(type, merge(nav_opts, {lte: max, gte: min})),
-                {lte:max, gte:min},
-                since //an offset
-              ),
               h('title', Type),
               ary
             ))
@@ -148,8 +95,6 @@ module.exports = function (sbot) {
       }
   }
 }
-
-
 
 
 

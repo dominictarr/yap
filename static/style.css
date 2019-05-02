@@ -157,3 +157,12 @@ textarea {
 
 }
 
+.no-more {
+  /*
+    disable links to previous or next sets
+    that do not contain anything...
+  */
+  color: grey;
+  pointer-events: none;
+}
+
