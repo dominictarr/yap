@@ -63,6 +63,9 @@ require('ssb-client')(function (err, sbot) {
     .use('messages/post',  require('./apis/messages/post')(sbot))
     .use('messages/vote',  require('./apis/messages/vote')(sbot))
 
+    .group('gatherings', require('../yap-gathering')(sbot))
+    .setDefault('public')
+
   var actions = {
     //note: opts is post body
 
@@ -198,8 +201,6 @@ require('ssb-client')(function (err, sbot) {
       })
     )
 })})
-
-
 
 
 
