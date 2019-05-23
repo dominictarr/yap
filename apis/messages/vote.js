@@ -1,4 +1,4 @@
-var u = require('../../util')
+var u = require('yap-util')
 module.exports = u.createRenderer(function (data, apply) {
   return ['div.Message',
     //currently, a vote message has no need for a cache tag.

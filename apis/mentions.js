@@ -1,4 +1,4 @@
-var u = require('../util')
+var u = require('yap-util')
 var explain = require('explain-error')
 var getMentions = require('../mentions')
 var ref = require('ssb-ref')

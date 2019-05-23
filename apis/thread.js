@@ -2,11 +2,9 @@ var pull = require('pull-stream')
 var ref = require('ssb-ref')
 var msum = require('markdown-summary')
 var sort = require('ssb-sort')
+var u = require('yap-util')
 
-var u = require('../util')
-
-var h = u.h
-toUrl = u.toUrl
+var toUrl = u.toUrl
 
 function uniqueRecps (recps) {
   if(!recps || !recps.length) return
@@ -105,52 +103,50 @@ module.exports = function (sbot) {
                     return apply('avatar', e)
                   })]
             cb(null,
-              h('div.thread',
+              ['div.thread',
                 apply.cacheAttrs(apply.toUrl('thread', opts), data.key, since),
-                ary[0].value.content.text && h('title', msum.title(ary[0].value.content.text)),
+                ary[0].value.content.text && ['title', msum.title(ary[0].value.content.text)],
                 recipients,
-                h('form', {name: 'publish', method: 'POST'},
-                  ary.map(function (data) {
-                    return h('div',
-                      apply('message', data),
-                      function (cb) {
-                        backlinks(sbot, data.key, function (err, likes, backlinks) {
-                          if(err) return cb(err)
+                ary.map(function (data) {
+                  return ['div.MessageContainer',
+                    apply('message', data),
+                    function (cb) {
+                      backlinks(sbot, data.key, function (err, likes, backlinks) {
+                        if(err) return cb(err)
 
-                          var expression = tr('Like')
-                          cb(null, ['div.MessageExtra',
-                            apply('publish', {
-                              id: context.id,
-                              suggestedRecps: data.value.author,
-                              content: {
-                                type: 'vote',
-                                root: root, branch: branch,
-                                vote: {
-                                  link:data.key, value: 1,
-                                  expression: expression
-                                },
-                                channel: data.value.content.channel,
-                                recps: recps
+                        var expression = tr('Like')
+                        cb(null, ['div.MessageExtra',
+                          apply('publish', {
+                            id: context.id,
+                            suggestedRecps: data.value.author,
+                            content: {
+                              type: 'vote',
+                              root: root, branch: branch,
+                              vote: {
+                                link:data.key, value: 1,
+                                expression: expression
                               },
-                              name: expression + ' ' + (likes.length ? '('+likes.length+')' : '')
-                            }),
-                            (backlinks.length ?
-                            ['ul.MessageBacklinks',
-                              backlinks.map(function (e) {
-                                return ['li',                                  apply('avatar', {id:e.value.author}),
-                                  ' ',
-                                  apply('messageLink', e),
-                                  ' ',
-                                  e.value.content.channel && apply('channelLink', e.value.content.channel)
-                                ]
-                              })
-                            ] : '')
-                          ])
-                        })
-                      }
-                    )
-                  })
-                ),
+                              channel: data.value.content.channel,
+                              recps: recps
+                            },
+                            name: expression + ' ' + (likes.length ? '('+likes.length+')' : '')
+                          }),
+                          (backlinks.length ?
+                          ['ul.MessageBacklinks',
+                            backlinks.map(function (e) {
+                              return ['li', apply('avatar', {id:e.value.author}),
+                                ' ',
+                                apply('messageLink', e),
+                                ' ',
+                                e.value.content.channel && apply('channelLink', e.value.content.channel)
+                              ]
+                            })
+                          ] : '')
+                        ])
+                      })
+                    }
+                  ]
+                }),
                 apply('compose', {
                   content: {
                     type: 'post',
@@ -160,7 +156,7 @@ module.exports = function (sbot) {
                     channel: ary[0].value.content.channel
                   }
                 })
-              )
+              ]
             )
           })
       })

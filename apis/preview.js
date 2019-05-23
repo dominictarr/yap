@@ -1,4 +1,4 @@
-var u = require('../util')
+var u = require('yap-util')
 var getMentions = require('../mentions')
 
 function toRecps (ary) {
@@ -22,6 +22,7 @@ module.exports = function (sbot) {
       }
     }
     return ['div.MessagePreview',
+      apply('message', data),
       ['form',
         {name: 'publish', method: 'POST'},
         //TODO: enable changing the identity to publish as here
@@ -37,7 +38,6 @@ module.exports = function (sbot) {
 
         ['input', {type: 'hidden', name: 'id', value: data.value.author}],
         opts.private ?  ['input', {type: 'hidden', name: 'private', value: data.value.author}] : '',
-        apply('message', data),
         u.createHiddenInputs(data.value.content, 'content'),
         apply('mentions', data.value.content),
         ['button', {name: 'type', value: 'publish'}, tr('Publish')]
@@ -49,4 +49,5 @@ module.exports = function (sbot) {
     //submit takes you to back to the thread page.
   }
 }
+
 

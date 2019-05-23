@@ -1,7 +1,7 @@
 var ref = require('ssb-ref')
 var Translations = require('../translations')
 
-var u = require('../util')
+var u = require('yap-util')
 
 module.exports = function (sbot) {
   return function (opts, apply, req) {
@@ -14,12 +14,12 @@ module.exports = function (sbot) {
       id: opts.id,
       content: content,
       private: opts.private,
-      inputs:
-        ['textarea', {name: 'content[text]'}],
+      inputs: ['textarea', {name: 'content[text]'}],
       name: tr('Preview')
     })
   }
 }
+
 
 
 

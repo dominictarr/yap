@@ -1,4 +1,4 @@
-var u = require('../util')
+var u = require('yap-util')
 
 function round (n, p) {
   return Math.round(n * p) / p

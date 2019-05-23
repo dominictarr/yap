@@ -9,7 +9,7 @@ var nested = require('libnested')
 var pull   = require('pull-stream')
 var URL    = require('url')
 var QS     = require('qs')
-var u      = require('./util')
+var u      = require('yap-util')
 var toHTML = u.toHTML
 var uniq   = require('lodash.uniq')
 
@@ -63,7 +63,7 @@ require('ssb-client')(function (err, sbot) {
     .use('messages/post',  require('./apis/messages/post')(sbot))
     .use('messages/vote',  require('./apis/messages/vote')(sbot))
 
-    .group('gatherings', require('../yap-gathering')(sbot))
+    .group('gatherings', require('yap-gatherings')(sbot))
     .setDefault('public')
 
   var actions = {

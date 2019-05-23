@@ -1,6 +1,5 @@
 var ref = require('ssb-ref')
-var h = require('../util').h
-var toUrl = require('../util').toUrl
+var toUrl = require('yap-util').toUrl
 
 module.exports = function (sbot) {
   return function (opts, apply) {
@@ -21,25 +20,26 @@ module.exports = function (sbot) {
       sbot.names.getImageFor(opts.id, function (err, blobId) {
         sbot.names.getSignifier(opts.id, function (err, name) {
           cb(null,
-            h('a.Avatar',
+            ['a.Avatar',
               Object.assign(
                 {href: opts.href || toUrl('public', {author:opts.id})},
                 apply.cacheAttrs(toUrl('avatar', opts), opts.id)
               ),
-              _image ? h('img', {
+              _image ? ['img', {
                 className:'avatar',
                 src: '/blobs/get/'+blobId,
                 //getSignifier returns id as name if there isn't a name available.
                 title: name !== opts.id ? name+'\n'+opts.id : opts.id
-              }) : '',
-              _image  && _name ? h('br') : '',
+              }] : '',
+              _image  && _name ? ['br'] : '',
               _name ? name : ''
-            )
+            ]
           )
         })
       })
     }
   }
 }
+
 
 

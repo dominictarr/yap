@@ -1,6 +1,6 @@
 var niceAgo = require('nice-ago')
 var pull = require('pull-stream')
-var u = require('../util')
+var u = require('yap-util')
 
 module.exports = function (sbot) {
   return function (opts, apply) {

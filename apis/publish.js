@@ -1,4 +1,4 @@
-var u = require('../util')
+var u = require('yap-util')
 var Translations = require('../translations')
 
 module.exports = function (sbot) {

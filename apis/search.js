@@ -13,7 +13,7 @@ module.exports = function (sbot) {
   return function (opts, apply, req) {
     var tr = require('../translations')(req.cookies.lang)
     var query = (opts.query || '').trim()
-    opts.limit = opts.limit || 10
+    opts.limit = opts.limit ? +opts.limit : 10
     if(ref.isMsgLink(query))
       return apply('message', {id: query})
     if(ref.isFeed(query))

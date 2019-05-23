@@ -4,9 +4,8 @@ var Append = require('pull-append')
 
 var sort = require('ssb-sort')
 
-var u = require('../util')
+var u = require('yap-util')
 
-var h = u.h
 toUrl = u.toUrl
 
 var render = require('./message').render
@@ -37,9 +36,13 @@ module.exports = function (sbot) {
         //is in the since.
         var since = self.since
         var _opts = u.createQuery(opts, {limit: 20, reverse: opts.reverse})
-        console.log(_opts)
+        console.log(JSON.stringify(_opts.query, null, 2))
+
         pull(
           sbot.query.read(_opts),
+          pull.filter(function (v) {
+            return v.value.content.type === 'post'
+          }),
           pull.collect(function (err, ary) {
             if(err) return cb(err)
             ary = ary.sort(function (a, b) {
@@ -86,15 +89,13 @@ module.exports = function (sbot) {
             ]
             ary.unshift(nav)
             ary.push(nav)
-            cb(null, h('div.' + Type,
-              h('title', Type),
-              ary
-            ))
+            cb(null, ['div.' + Type, ['title', Type], ary])
           })
         )
       }
   }
 }
+
 
 
 

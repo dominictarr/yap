@@ -32,7 +32,8 @@
     "ssb-sort": "^1.1.0",
     "ssb-ws": "^6.0.0",
     "stack": "^0.1.0",
-    "urlencoded-request-parser": "^1.0.1"
+    "urlencoded-request-parser": "^1.0.1",
+    "yap-util": "^1.0.0"
   },
   "bin": "./index.js",
   "devDependencies": {

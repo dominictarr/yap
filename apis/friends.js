@@ -1,4 +1,4 @@
-var toUrl = require('../util').toUrl
+var toUrl = require('yap-util').toUrl
 
 module.exports = function (sbot) {
   return function (opts, apply, req) {
