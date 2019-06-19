@@ -21,6 +21,14 @@ li img.avatar {
 }
 img.emoji { width: 16px; }
 
+p {
+  word-wrap: break-word;
+}
+
+div.Markdown {
+  max-width: 600px;
+}
+
 div.main {
   /*padding at the top, to allow space for nav bar */
   padding-top: 100px;
@@ -165,4 +173,3 @@ textarea {
   color: grey;
   pointer-events: none;
 }
-
