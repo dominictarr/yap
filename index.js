@@ -37,11 +37,13 @@ require('ssb-client')(function (err, sbot) {
     //called by preview (to clarify who you are mentioning)
     .use('mentions',       require('./apis/mentions')(sbot))
 
-    .use('messageLink',    require('./apis/message-link')(sbot))
-    .use('channelLink',    require('./apis/channel-link')(sbot))
+//    .use('messageLink',    require('./apis/message-link')(sbot))
+//    .use('channelLink',    require('./apis/channel-link')(sbot))
 
     //render a single message
     .use('message',        require('./apis/message')(sbot))
+
+//    .map('link', 'msg', 'message')
 
     //show how much things there are to do...
     .use('progress',       require('./apis/progress')(sbot))
@@ -51,20 +53,16 @@ require('ssb-client')(function (err, sbot) {
     .use('compose',        require('./apis/compose')(sbot))
     .use('publish',        require('./apis/publish')(sbot))
 
-    //view (and filtered views) on the raw log
-    .use('public',         require('./apis/public')(sbot))
     .use('more',         require('./apis/more')(sbot))
-    .use('private',        require('./apis/private')(sbot))
-    .use('friends',        require('./apis/friends')(sbot))
     .use('search',         require('./apis/search')(sbot))
 
     //patchthreads
-    .use('thread',         require('./apis/thread')(sbot))
-    .use('messages/post',  require('./apis/messages/post')(sbot))
-    .use('messages/vote',  require('./apis/messages/vote')(sbot))
+//    .use('messages/post',  require('./apis/messages/post')(sbot))
+//    .use('messages/vote',  require('./apis/messages/vote')(sbot))
 
+    .group('patch', require('yap-patch')(sbot))
     .group('gatherings', require('yap-gatherings')(sbot))
-    .setDefault('public')
+    .setDefault('patch/public')
 
   var actions = {
     //note: opts is post body
@@ -201,6 +199,3 @@ require('ssb-client')(function (err, sbot) {
       })
     )
 })})
-
-
-

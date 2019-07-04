@@ -9,7 +9,3 @@ toUrl = u.toUrl
 module.exports = u.createRenderer(function render (data, apply) {
   return apply(['messages', data.value.content.type], data)
 })
-
-
-
-

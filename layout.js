@@ -14,8 +14,9 @@ module.exports = function (opts, content, apply, req) {
             ['h2', tr('AppName')],
             ['img', {src: '/favicon.ico'}]
           ],
-          ['a', {href: '/public'}, tr('Public')],
-          ['a', {href: '/private'}, tr('Private')],
+          ['div.Menu', apply('menu')],
+//          ['a', {href: '/public'}, tr('Public')],
+//          ['a', {href: '/private'}, tr('Private')],
 //          ['a', {href: '/gatherings'}, 'Gatherings'],
           ['form', {method: 'GET', action: '/search'},
             ['input', {type: 'text', name: 'query', placeholder: tr('Search')}],

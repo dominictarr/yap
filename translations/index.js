@@ -50,5 +50,3 @@ module.exports = function (lang, default_lang) {
     return w
   }
 }
-
-
