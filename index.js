@@ -36,6 +36,7 @@ require('ssb-client')(function (err, sbot) {
     .use('identitySelect', require('./apis/identity-select')(sbot))
     //called by preview (to clarify who you are mentioning)
     .use('mentions',       require('./apis/mentions')(sbot))
+    .use('messageLayout',  require('./message-layout'))
 
 //    .use('messageLink',    require('./apis/message-link')(sbot))
 //    .use('channelLink',    require('./apis/channel-link')(sbot))
@@ -62,6 +63,7 @@ require('ssb-client')(function (err, sbot) {
 
     .group('patch', require('yap-patch')(sbot))
     .group('gatherings', require('yap-gatherings')(sbot))
+    .group('tags', require('yap-tags')(sbot))
     .setDefault('patch/public')
 
   var actions = {
