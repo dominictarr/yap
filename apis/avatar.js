@@ -22,7 +22,7 @@ module.exports = function (sbot) {
           cb(null,
             ['a.Avatar',
               Object.assign(
-                {href: opts.href || toUrl('public', {author:opts.id})},
+                {href: opts.href || toUrl('patch/public', {author:opts.id})},
                 apply.cacheAttrs(toUrl('avatar', opts), opts.id)
               ),
               _image ? ['img', {
@@ -40,6 +40,3 @@ module.exports = function (sbot) {
     }
   }
 }
-
-
-
