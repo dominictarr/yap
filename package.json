@@ -28,7 +28,7 @@
     "ssb-client": "^4.7.4",
     "ssb-markdown": "^3.6.0",
     "ssb-mentions": "^0.5.0",
-    "ssb-ref": "^2.13.6",
+    "ssb-ref": "^2.13.9",
     "ssb-sort": "^1.1.0",
     "ssb-ws": "^6.0.0",
     "stack": "^0.1.0",
