@@ -54,8 +54,11 @@ require('ssb-client')(function (err, sbot) {
     .use('compose',        require('./apis/compose')(sbot))
     .use('publish',        require('./apis/publish')(sbot))
 
+    .list('menu') //links to apps, along top of screen.
     .use('more',         require('./apis/more')(sbot))
     .use('search',         require('./apis/search')(sbot))
+
+    .list('extra') //attached to each message, likes, backlinks, etc
 
     //patchthreads
 //    .use('messages/post',  require('./apis/messages/post')(sbot))
@@ -65,6 +68,8 @@ require('ssb-client')(function (err, sbot) {
     .group('gatherings', require('yap-gatherings')(sbot))
     .group('tags', require('yap-tags')(sbot))
     .setDefault('patch/public')
+
+  console.log(coherence.dump())
 
   var actions = {
     //note: opts is post body
