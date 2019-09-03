@@ -13,7 +13,7 @@ var ref    = require('ssb-ref')
 var Stack  = require('stack')
 
 //refactor to ditch these things
-hvar nested = require('libnested')
+var nested = require('libnested')
 var pull   = require('pull-stream')
 var URL    = require('url')
 var QS     = require('qs')
