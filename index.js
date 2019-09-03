@@ -1,11 +1,19 @@
 #! /usr/bin/env node
+
+//var log = console.log
+//console.log = function () {
+//  var args = [].slice.call(arguments)
+//  console.error(new Error('log trace'))
+//  log.apply(null, args)
+//}
+
 var fs     = require('fs')
 var path   = require('path')
 var ref    = require('ssb-ref')
 var Stack  = require('stack')
 
 //refactor to ditch these things
-var nested = require('libnested')
+hvar nested = require('libnested')
 var pull   = require('pull-stream')
 var URL    = require('url')
 var QS     = require('qs')
@@ -35,7 +43,9 @@ require('ssb-client')(function (err, sbot) {
     .use('avatar',         require('./apis/avatar')(sbot))
     .use('identitySelect', require('./apis/identity-select')(sbot))
     //called by preview (to clarify who you are mentioning)
+    .list('preview-confirm')
     .use('mentions',       require('./apis/mentions')(sbot))
+    .list('preview-confirm', 'mentions')
     .use('messageLayout',  require('./message-layout'))
 
 //    .use('messageLink',    require('./apis/message-link')(sbot))
@@ -68,8 +78,6 @@ require('ssb-client')(function (err, sbot) {
     .group('gatherings', require('yap-gatherings')(sbot))
     .group('tags', require('yap-tags')(sbot))
     .setDefault('patch/public')
-
-  console.log(coherence.dump())
 
   var actions = {
     //note: opts is post body
