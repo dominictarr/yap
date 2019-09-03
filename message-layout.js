@@ -9,7 +9,7 @@ module.exports = function (opts, apply) {
     ['div.MessageSide',
       apply('avatar', {id: opts.author, name: false, image: true}),
       ['a', {
-        href: toUrl('message', {id: opts.key}),
+        href: toUrl('message', {id: opts.id || opts.key}),
         title: new Date(opts.ts)+'\n'+opts.key
       },
         ''+niceAgo(Date.now(), opts.ts)
@@ -22,7 +22,7 @@ module.exports = function (opts, apply) {
         opts.meta ? opts.meta : ''
       ],
       ['div.MessageContent', opts.content],
-//      opts.extra && ['div.MessageExtra', apply('messageExtra', opts.key)]
+      opts.extra && ['div.MessageExtra', apply('extra', {id: opts.key || opts.id, root: opts.root, branch: opts.branch})]
     ]
   ]
 }
