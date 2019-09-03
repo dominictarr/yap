@@ -39,7 +39,7 @@ module.exports = function (sbot) {
         ['input', {type: 'hidden', name: 'id', value: data.value.author}],
         opts.private ?  ['input', {type: 'hidden', name: 'private', value: data.value.author}] : '',
         u.createHiddenInputs(data.value.content, 'content'),
-        apply('mentions', data.value.content),
+        apply('preview-confirm', data.value.content),
         ['button', {name: 'type', value: 'publish'}, tr('Publish')]
       ]
     ]
@@ -49,5 +49,3 @@ module.exports = function (sbot) {
     //submit takes you to back to the thread page.
   }
 }
-
-
