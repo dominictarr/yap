@@ -6,7 +6,7 @@ Intended for server side html rendering (like patchfoo)
 with invalidation based lightweight front ends.
 
 Should also work without javascript! Please post an issue if something does not work
-in your prefurred browser!
+in your preferred browser!
 
 see also:
   * [the state of yap](https://en.wikipedia.org/wiki/Yap)
