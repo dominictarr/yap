@@ -11,8 +11,10 @@ function isName (c) {
 
 module.exports = function (sbot) {
   return function (opts, apply, req) {
+    console.log("SEARCH", opts)
     var tr = require('../translations')(req.cookies.lang)
     var query = (opts.query || '').trim()
+    delete opts.query
     opts.limit = opts.limit ? +opts.limit : 10
     if(ref.isMsgLink(query))
       return apply('message', {id: query})
@@ -40,8 +42,9 @@ module.exports = function (sbot) {
       }
 
     return pull(
-      sbot.search.query(opts),
+      sbot.search.query(Object.assign({query: query}, opts)),
       pull.map(function (data) {
+        console.log('result', data)
         return apply('message', data)
       })
     )
